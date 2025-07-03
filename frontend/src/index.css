@@ -88,3 +88,8 @@ body {
   height: 330px;
 }
 
+.custom-input::placeholder {
+  color: white;
+  opacity: 1;
+}
+
