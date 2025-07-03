@@ -3,7 +3,6 @@ import React from 'react';
 function Navbar() {
     return (
         <>
-        <h1>Navbar</h1>
          <nav className="navbar navbar-expand-lg bg-transparent shadow-sm fixed-top">
     <div className="container">
         <a className="navbar-brand text-white fw-bold" href="#">CLEAR - CONNECT</a>
