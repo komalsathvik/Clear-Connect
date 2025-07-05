@@ -7,6 +7,8 @@ const PORT=process.env.PORT;
 const url=process.env.MONGO_URL;
 const cors=require("cors");
 const authRoute=require("./routes/authRoute");
+const passport=require("passport");
+require("../config/Passport");
 
 const server=http.createServer(app);
 app.use(express.json());
@@ -17,7 +19,7 @@ app.use(
     credentials: true,
   })
 );
-
+app.use(passport.initialize());
 app.use("/", authRoute);
 async function connectDb(){
     await mongoose.connect(url).then(()=>{

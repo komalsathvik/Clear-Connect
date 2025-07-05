@@ -114,7 +114,14 @@ function Register() {
           <button type="submit" className="btn btn-primary w-100">
             Submit
           </button>
-
+          <button
+  className="btn btn-danger w-100 mt-2"
+  onClick={() => {
+    window.open("http://localhost:9000/auth/google", "_self");
+  }}
+>
+  Sign in with Google
+</button>
           <span className="d-block mt-3" style={{color:"white"}}>
             Already have an account? <Link to="/login">Login</Link>
           </span>
