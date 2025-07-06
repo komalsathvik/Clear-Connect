@@ -18,6 +18,7 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "react": "^19.1.0",
+    "react-bootstrap": "^2.10.10",
     "react-cookie": "^8.0.1",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",

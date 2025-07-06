@@ -67,7 +67,7 @@ button:focus-visible {
   }
 }
 body {
-  background-image: url("../images/background.png");
+  background-image: url("../images/istockphoto-1268728034-612x612.jpg");
   background-repeat: repeat; 
   background-size: cover; 
   background-position: center;
@@ -92,4 +92,190 @@ body {
   color: white;
   opacity: 1;
 }
+/* Modal backdrop */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
 
+/* Modal content */
+.modal-content {
+  background-color: #1f1f1f;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  color: white;
+  position: relative;
+  box-shadow: 0px 4px 20px rgba(255, 165, 0, 0.3);
+  animation: slideIn 0.3s ease;
+}
+
+/* Close button */
+.modal-content button.btn-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+/* Form inputs */
+.modal-content input,
+.modal-content textarea {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: none;
+  border-radius: 8px;
+  background-color: #333;
+  color: white;
+  font-size: 1rem;
+}
+
+/* Submit button */
+.modal-content .submit-btn {
+  width: 100%;
+  padding: 0.8rem;
+  background: linear-gradient(to right, #ffa500, #90ee90); /* light orange to light green */
+  color: #1f1f1f;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.modal-content .submit-btn:hover {
+  background: linear-gradient(to right, #ff8800, #66cc66);
+}
+
+/* Slide-in animation */
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* General button overrides for dialog triggers */
+.btn-custom {
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  background: linear-gradient(to right, #ffa500, #90ee90);
+  color: #1f1f1f;
+  font-weight: 600;
+  border: none;
+  transition: 0.2s;
+  margin: 0.5rem;
+}
+
+.btn-custom:hover {
+  background: linear-gradient(to right, #ff8800, #66cc66);
+}
+/* Modal backdrop */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+/* Modal content */
+.modal-content {
+  background: linear-gradient(135deg, #d0f0c0, #a8e6cf); /* Light green gradient */
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  color: #1f1f1f; /* Dark text for contrast */
+  position: relative;
+  box-shadow: 0px 4px 20px rgba(0, 100, 0, 0.3);
+  animation: slideIn 0.3s ease;
+}
+
+/* Close button */
+.modal-content button.btn-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #555;
+}
+
+/* Form inputs */
+.modal-content input,
+.modal-content textarea {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #333;
+  font-size: 1rem;
+}
+
+/* Submit button */
+.modal-content .submit-btn {
+  width: 100%;
+  padding: 0.8rem;
+  background-color: #4caf50; /* green */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.modal-content .submit-btn:hover {
+  background-color: #388e3c;
+}
+
+/* Slide-in animation */
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.gradient-card {
+  background: linear-gradient(135deg, #efd19a, #ccffcc);
+  color: #333;
+  border: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 24px rgba(255, 165, 0, 0.3); /* soft orange glow */
+}
