@@ -1,11 +1,11 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate,useLocation } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 
 function Login() {
   const navigate = useNavigate();
-
+  const location = useLocation();
   const [inputValue, setInputValue] = useState({
     email: "",
     password: "",
@@ -51,7 +51,6 @@ function Login() {
 
     setInputValue({ email: "", password: "" });
   };
-
   return (
     <>
       <div className="col">
@@ -87,7 +86,6 @@ function Login() {
                 onChange={handleOnChange}
               />
             </div>
-
             <button type="submit" className="btn btn-primary w-100">
               Submit
             </button>
@@ -98,6 +96,14 @@ function Login() {
           </form>
 
           <ToastContainer />
+          <button
+  className="btn btn-danger w-100 mt-2"
+  onClick={() => {
+    window.open("http://localhost:9000/auth/google", "_self");
+  }}
+>
+  Login with Google
+</button>
         </div>
       </div>
     </>
