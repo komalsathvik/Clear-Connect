@@ -54,7 +54,7 @@ function Login() {
   return (
     <>
       <div className="col">
-        <div className="login-container">
+        <div className="login-container" style={{ background: "linear-gradient(to right,rgb(243, 226, 193), #90ee90)" ,width:"450px",height:"400px"}}>
           <p style={{ color: "black", fontWeight: "bold", fontSize: "24px" }}>
             Login into your account
           </p>

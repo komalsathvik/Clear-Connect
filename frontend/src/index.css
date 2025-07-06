@@ -199,7 +199,7 @@ body {
 
 /* Modal content */
 .modal-content {
-  background: linear-gradient(135deg, #d0f0c0, #a8e6cf); /* Light green gradient */
+  background: linear-gradient(135deg, #f0de7a, #a8e6cf); /* Light green gradient */
   padding: 2rem;
   border-radius: 12px;
   width: 100%;

@@ -21,7 +21,14 @@ function LandingPage() {
         <div className="card-body">
           <h5 className="card-title">Create A meeting</h5>
           <p className="card-text">Create your own instant meeting</p>
-          <a href="#" className="btn btn-outline-dark">CREATE</a>
+          <button
+        type="button"
+        className="btn btn-outline-dark"
+        data-bs-toggle="modal"
+        data-bs-target="#createMeetingModal"
+      >
+        Create a meeting
+      </button>
         </div>
       </div>
     </div>
@@ -31,7 +38,14 @@ function LandingPage() {
         <div className="card-body">
           <h5 className="card-title">Join A Meeting</h5>
           <p className="card-text">Join a meeting quickly using meeting id</p>
-          <a href="#" className="btn btn-outline-dark">JOIN</a>
+          <button
+        type="button"
+        className="btn btn-outline-dark"
+        data-bs-toggle="modal"
+        data-bs-target="#joinMeetingModal"
+      >
+        Join a meeting
+      </button>
         </div>
       </div>
     </div>
@@ -81,8 +95,8 @@ function LandingPage() {
             <div className="modal-body">
               <form>
                 <div className="mb-3">
-                  <label style={{color:"white"}} className="form-label">Meeting Name</label>
-                  <input type="text" className="form-control" placeholder="Enter meeting name" />
+                  <label style={{color:"white"}} className="form-label">Meeting ID</label>
+                  <input type="text" className="form-control" placeholder="Enter meeting ID" />
                 </div>
                 <div className="mb-3">
                   <label style={{color:"white"}} className="form-label">Scheduled Time</label>
@@ -90,6 +104,7 @@ function LandingPage() {
                 </div>
                 <div className='end'>
               <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              &nbsp;&nbsp;&nbsp;&nbsp;
               <button type="button" className="btn btn-primary">Create</button>
                 </div>
               </form>

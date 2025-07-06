@@ -55,7 +55,7 @@ function Register() {
 
   return (
     <div className="col">
-      <div className="signup-container">
+      <div className="signup-container"  style={{ background: "linear-gradient(to right,rgb(243, 226, 193), #90ee90)" ,width:"460px",height:"530px"}}>
         <p style={{ color: "black", fontWeight: "bold", fontSize: "24px" }}>
           Create an Account
         </p>

@@ -11,33 +11,17 @@ function Guest() {
   };
 
   return (
-    <div
-      className="d-flex justify-content-center align-items-center"
-      style={{
-        minHeight: '70vh',
-        backgroundColor: '#000000',
-        fontFamily: 'Segoe UI, sans-serif',
-        padding: '2rem',
-      }}
-    >
       <div
         className="card shadow p-4"
-        style={{
-          maxWidth: '420px',
-          width: '100%',
-          borderRadius: '20px',
-          backgroundColor: '#1c1c1c',
-          border: '1px solid #333',
-          color: 'white',
-        }}
+       style={{ background: "linear-gradient(to right,rgb(243, 226, 193), #90ee90)" ,width:"450px",height:"400px"}}
       >
-        <h3 className="text-center mb-4" style={{ color: '#ffa500' }}>
+        <h3 className="text-center mb-4">
           Join as Guest
         </h3>
 
         <form onSubmit={handleJoin}>
           <div className="mb-3">
-            <label htmlFor="username" className="form-label fw-semibold" style={{ color: '#ffa500' }}>
+            <label htmlFor="username" className="form-label fw-semibold">
               Username
             </label>
             <input
@@ -48,11 +32,7 @@ function Guest() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              style={{
-                backgroundColor: '#2c2c2c',
-                border: '1px solid #444',
-                color: 'white',
-              }}
+              
             />
           </div>
 
@@ -68,11 +48,6 @@ function Guest() {
               value={roomId}
               onChange={(e) => setRoomId(e.target.value)}
               required
-              style={{
-                backgroundColor: '#2c2c2c',
-                border: '1px solid #444',
-                color: '#ffa500',
-              }}
             />
           </div>
 
@@ -90,7 +65,6 @@ function Guest() {
           </button>
         </form>
       </div>
-    </div>
   );
 }
 
