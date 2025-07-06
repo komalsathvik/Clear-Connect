@@ -4,12 +4,13 @@ const {userVerification}=require("../middlewares/authMiddileware");
 const router = require("express").Router();
 
 router.get("/auth/google",passport.authenticate("google",{
-    scope:["profile","email"]
+    scope:["profile","email"],
+    prompt: "select_account",
 }));
 router.get("/auth/google/callback",
     passport.authenticate("google",{
         session:false,
-        failureRedirect:"/login",
+        failureRedirect:"http://localhost:5173/login",
     }),
     (req,res)=>{
         const token=req.user.token;

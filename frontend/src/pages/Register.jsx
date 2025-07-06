@@ -114,6 +114,11 @@ function Register() {
           <button type="submit" className="btn btn-primary w-100">
             Submit
           </button>
+          <span className="d-block mt-3" style={{color:"white"}}>
+            Already have an account? <Link to="/login">Login</Link>
+          </span>
+        </form>
+        <ToastContainer />
           <button
   className="btn btn-danger w-100 mt-2"
   onClick={() => {
@@ -122,12 +127,6 @@ function Register() {
 >
   Sign in with Google
 </button>
-          <span className="d-block mt-3" style={{color:"white"}}>
-            Already have an account? <Link to="/login">Login</Link>
-          </span>
-        </form>
-
-        <ToastContainer />
       </div>
     </div>
   );

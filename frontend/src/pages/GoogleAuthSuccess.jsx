@@ -1,37 +1,31 @@
-// src/pages/GoogleAuthSuccess.jsx
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 
 function GoogleAuthSuccess() {
   const navigate = useNavigate();
+  const [status, setStatus] = useState("Logging you in...");
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
+    const query = new URLSearchParams(window.location.search);
+    const token = query.get("token");
 
     if (token) {
-      // Store token in cookies or localStorage
-      document.cookie = `token=${token}; path=/;`; // optional
-      localStorage.setItem("token", token); // recommended
-
-      toast.success("Google login successful! Redirecting...", {
-        position: "top-right",
-      });
-
-      // Navigate after short delay
+      localStorage.setItem("token", token);
+      setStatus("✅ Google login successful! Redirecting...");
       setTimeout(() => {
-        navigate("/"); // or your dashboard
-      }, 1500);
+        navigate("/");
+      }, 2000);
     } else {
-      toast.error("Token not found from Google Auth.");
-      navigate("/login");
+      setStatus("❌ Google login failed. Redirecting to login...");
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     }
-  }, [navigate]);
+  }, []);
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h2>Logging you in with Google...</h2>
+    <div style={{ color: "white", textAlign: "center", marginTop: "2rem" }}>
+      <h3>{status}</h3>
     </div>
   );
 }
