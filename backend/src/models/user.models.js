@@ -16,6 +16,7 @@ const userSchema=new Schema({
     token:{
         type:String,
     },
+    profilePic: { type: String, default: "" }
 
 });
 userSchema.pre("save", async function (next) {

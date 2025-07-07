@@ -17,15 +17,21 @@ passport.use(
         }
 
         let user = await User.findOne({ email: profile.emails[0].value });
+        const profilePic=profile.photos[0]?.value;
         if (!user) {
           user = await User.create({
             username: profile.displayName,
             email: profile.emails[0].value,
             password: "google-oauth",
+            profilePic:profilePic,
           });
           console.log("New user created:", user);
         } else {
-          console.log("Existing user:", user);
+          if (!user.profilePic && profilePic) {
+      user.profilePic = profilePic;
+      await user.save();
+      }
+    console.log("Existing user:", user);
         }
 
         user.token = createSecretToken(user._id);

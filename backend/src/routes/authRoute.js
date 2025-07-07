@@ -14,7 +14,9 @@ router.get("/auth/google/callback",
     }),
     (req,res)=>{
         const token=req.user.token;
-        res.redirect(`http://localhost:5173/google-auth-success?token=${token}`);
+            const username = req.user.username;
+            const picture = req.user.profilePic || "./images/2903-default-blue.png";
+        res.redirect(`http://localhost:5173/google-auth-success?token=${token}&name=${username}&picture=${encodeURIComponent(picture)}`);
     }
 )
 router.post("/register", Register);
