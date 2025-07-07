@@ -14,6 +14,9 @@ function GoogleAuthSuccess() {
       localStorage.setItem("token", token);
       if(username)localStorage.setItem("username",username);
       if(profilePic)localStorage.setItem("profilePic",profilePic);
+      if(!profilePic){
+        localStorage.setItem("profilePic", "./images/2903-default-blue.pngs");
+      }
       setStatus("✅ Google login successful! Redirecting...");
       setTimeout(() => {
         navigate("/");

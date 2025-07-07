@@ -65,7 +65,7 @@ function LandingPage() {
         <div className="card-body">
           <h5 className="card-title">Edit your profile</h5>
           <p className="card-text">Edit and view your profile data </p>
-          <a href="#" className="btn btn-outline-dark">EDIT</a>
+          <a href="/profile" className="btn btn-outline-dark">EDIT</a>
         </div>
       </div>
     </div>

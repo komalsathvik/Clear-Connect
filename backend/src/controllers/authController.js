@@ -14,6 +14,7 @@ module.exports.Register=async(req,res,next)=>{
             username:username,
             email:email,
             password:password,
+            profilePic:"./images/2903-default-blue.png",
         });
         await user.save();
         const token = createSecretToken(user._id);
@@ -48,7 +49,14 @@ module.exports.Login = async (req, res, next) => {
        withCredentials: true,
        httpOnly: false,
      });
-     res.status(201).json({ message: "User logged in successfully", success: true });
+     res.status(201).json({
+  message: "Login successful!",
+  token: createSecretToken(user._id),
+  username: user.username,
+  profilePic: user.profilePic || null,
+  success:true
+});
+
   } catch (error) {
     console.error(error);
   }

@@ -41,6 +41,9 @@ function Register() {
       const { success, message } = data;
       if (success) {
         handleSuccess(message);
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("username", data.username);
+        localStorage.setItem("profilePic", data.profilePic || "./images/2903-default-blue.png");
         setTimeout(() => navigate("/"), 1000);
       } else {
         handleError(message);
