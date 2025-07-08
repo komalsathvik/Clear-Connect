@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Guest from './pages/Guest';
 import GoogleAuthSuccess from './pages/GoogleAuthSuccess';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
             <Route path='/register' element={<Register/>}/>
             <Route path='/guest' element={<Guest/>}/>
             <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
+            <Route path="/profile" element={<Profile/>}/>
           </Routes>
       </BrowserRouter>
     </>
