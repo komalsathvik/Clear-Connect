@@ -9,11 +9,12 @@ function GoogleAuthSuccess() {
     const token = query.get("token");
     const username=query.get("name");
     const profilePic=query.get("picture");
-
+    const email = query.get("email");
     if (token) {
       localStorage.setItem("token", token);
       if(username)localStorage.setItem("username",username);
       if(profilePic)localStorage.setItem("profilePic",profilePic);
+      if(email)localStorage.setItem("email",email);
       if(!profilePic){
         localStorage.setItem("profilePic", "./images/2903-default-blue.pngs");
       }

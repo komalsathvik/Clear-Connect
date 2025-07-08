@@ -1,9 +1,23 @@
 import React,{useState,useEffect} from 'react';
+import { ToastContainer,toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import 'react-toastify/dist/ReactToastify.css';
 function Profile() {
+    let navigate=useNavigate();
     let [username,setUsername]=useState("");
     let [password,setPassword]=useState("");
+    let [email,setEmail]=useState("");
     let [profilePic,setNewProfilePic]=useState(null);
     let [profilePreview,setProfilePreview]=useState(null);
+    const handleError = (err) =>
+    toast.error(err, {
+      position: "bottom-left",
+    });
+  const handleSuccess = (msg) =>
+    toast.success(msg, {
+      position: "bottom-right",
+    });
     function handleProfileChange(e){
         const file=e.target.files[0];
         if(file){
@@ -11,7 +25,46 @@ function Profile() {
             const preview=URL.createObjectURL(file);
             setProfilePreview(preview);
         }
+        
     }
+    async function handleSave(){
+        const token=localStorage.getItem("token");
+        if(!token){
+            handleError("please login first");
+            return;
+        }
+        const formData=new FormData();
+        formData.append("username",username);
+        formData.append("password",password);
+        formData.append("profilePic",profilePic);
+        const res=await axios.put("http://localhost:9000/update-profile",formData,{
+            headers:{
+                "Authorization":`Bearer ${localStorage.getItem("token")}`,
+                "Content-type":"multipart/form-data",
+            }
+        });
+        const data=await res.data;
+        if(data.username)localStorage.setItem("username",data.username);
+        if(data.updatedProfilePic)localStorage.setItem("profilePic",data.updatedProfilePic);
+        if(data.success){
+            handleSuccess("User profile updated");
+             setTimeout(() => {
+    navigate("/");
+  }, 3000)
+        }
+        else{
+            handleError("failed to update profile");
+        }
+    }
+    function handleDelete(){
+
+    }
+    useEffect(()=>{
+  const storedUsername = localStorage.getItem("username");
+  const storedEmail = localStorage.getItem("email");
+  if (storedUsername) setUsername(storedUsername);
+if(storedEmail)setEmail(storedEmail);
+    },[])
   return (
     <>
       <div className="container mt-5 p-4" style={{ minHeight:"650px",width: "600px",height:"500px", background: "linear-gradient(to right, #ffe5b4, #d0f0c0)", borderRadius: "1rem", boxShadow: "0px 4px 12px rgba(0,0,0,0.1)" }}>
@@ -22,6 +75,8 @@ function Profile() {
           <input
             className="form-control form-control-lg"
             type="text"
+            value={username}
+            onChange={(e)=>setUsername(e.target.value)}
             placeholder="Enter your username"
           />
         </div>
@@ -31,18 +86,19 @@ function Profile() {
           <input
             className="form-control form-control-lg"
             type="text"
-            placeholder="email"
+            value={email}
             readOnly
           />
         </div>
 
         <div className="mb-3">
-          <label htmlFor="inputPassword5" className="form-label fw-semibold">Password</label>
+          <label htmlFor="inputPassword5" className="form-label fw-semibold">Update Password</label>
           <input
             type="password"
             id="inputPassword5"
             className="form-control"
             placeholder="Set or change your password"
+            onChange={(e)=>setPassword(e.target.value)}
           />
         </div>
 
@@ -61,9 +117,10 @@ function Profile() {
   </div>
 )}
         <div className="d-flex justify-content-between">
-          <button className="btn btn-success px-4">Save Changes</button>
-          <button className="btn btn-danger px-4">Delete Account</button>
+          <button className="btn btn-success px-4" onClick={handleSave}>Save Changes</button>
+          <button className="btn btn-danger px-4" onClick={handleDelete}>Delete Account</button>
         </div>
+        <ToastContainer/>
       </div>
     </>
   );

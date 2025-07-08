@@ -7,6 +7,7 @@ const PORT=process.env.PORT;
 const url=process.env.MONGO_URL;
 const cors=require("cors");
 const authRoute=require("./routes/authRoute");
+const path=require("path");
 const passport=require("passport");
 require("../config/Passport");
 
@@ -21,6 +22,9 @@ app.use(
 );
 app.use(passport.initialize());
 app.use("/", authRoute);
+// app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 async function connectDb(){
     await mongoose.connect(url).then(()=>{
         console.log("db connected");
@@ -29,6 +33,6 @@ async function connectDb(){
     })
 }
 server.listen(PORT,()=>{
-    console.log("server is running");
+    console.log(`server is running on port ${PORT}`);
     connectDb();
-})
+});

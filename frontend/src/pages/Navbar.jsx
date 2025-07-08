@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  const baseUrl = "http://localhost:9000";
+  const profilePic = localStorage.getItem("profilePic");
+
   function logOut() {
     localStorage.clear();
     window.location.href = "/";
@@ -30,15 +33,15 @@ function Navbar() {
           ) : (
             <div className="dropdown ms-auto">
               <img
-  src={localStorage.getItem("profilePic") || "./images/2903-default-blue.png"}
-  alt="Profile"
-  className="dropdown-toggle"
-  role="button"
-  id="dropdownMenuButton"
-  data-bs-toggle="dropdown"
-  aria-expanded="false"
-  style={{ width: "40px", height: "40px", borderRadius: "50%", cursor: "pointer" }}
-/>
+                src={profilePic ? `${baseUrl}${profilePic}` : "./images/2903-default-blue.png"}
+                alt="Profile"
+                className="dropdown-toggle"
+                role="button"
+                id="dropdownMenuButton"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                style={{ width: "40px", height: "40px", borderRadius: "50%", cursor: "pointer" }}
+              />
 
               <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton" data-bs-auto-close="outside">
                 <li><a className="dropdown-item" href="/profile">Edit Profile</a></li>
