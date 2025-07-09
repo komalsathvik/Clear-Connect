@@ -5,15 +5,19 @@ const router = require("express").Router();
 const multer=require("multer");
 const User=require("../models/user.models");
 const bcrypt=require("bcrypt");
-const storage=multer.diskStorage({
-  destination:(req,file,cb)=>{
-    cb(null,"uploads/")
+const path = require("path");
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    // Save inside /src/uploads
+    cb(null, path.join(__dirname,"..","uploads"));
   },
-  filename:(req,file,cb)=>{
-    const ext=file.originalname.split(".").pop();
+  filename: (req, file, cb) => {
+    const ext = file.originalname.split(".").pop();
     cb(null, `${Date.now()}-${file.fieldname}.${ext}`);
-  }
-})
+  },
+});
+
 const upload=multer({storage});
 router.get("/auth/google",passport.authenticate("google",{
     scope:["profile","email"],

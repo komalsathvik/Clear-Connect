@@ -57,7 +57,12 @@ function Profile() {
         }
     }
     function handleDelete(){
-
+      const token=localStorage.getItem("token");
+      if(!token){
+        handleError("please login first");
+        return;
+      }
+      if (!window.confirm("Are you sure you want to delete your profile? This action is irreversible.")) return;
     }
     useEffect(()=>{
   const storedUsername = localStorage.getItem("username");

@@ -32,6 +32,7 @@ async function connectDb(){
         console.log(err);
     })
 }
+
 server.listen(PORT,()=>{
     console.log(`server is running on port ${PORT}`);
     connectDb();
