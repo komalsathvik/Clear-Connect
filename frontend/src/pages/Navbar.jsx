@@ -4,7 +4,13 @@ function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const baseUrl = "http://localhost:9000";
-  const profilePic = localStorage.getItem("profilePic");
+  const rawProfilePic = localStorage.getItem("profilePic");
+
+const profilePic = rawProfilePic
+  ? rawProfilePic.startsWith("http") || rawProfilePic.startsWith("/images/")
+    ? rawProfilePic
+    : `${baseUrl}${rawProfilePic}`
+  : "/images/2903-default-blue.png";
 
   function logOut() {
     localStorage.clear();
@@ -12,7 +18,7 @@ function Navbar() {
   }
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");  
     if (token) {
       setIsLoggedIn(true);
     }
@@ -33,7 +39,7 @@ function Navbar() {
           ) : (
             <div className="dropdown ms-auto">
               <img
-                src={profilePic ? `${baseUrl}${profilePic}` : "./images/2903-default-blue.png"}
+                src={profilePic}
                 alt="Profile"
                 className="dropdown-toggle"
                 role="button"

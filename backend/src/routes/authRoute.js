@@ -1,6 +1,6 @@
 const passport = require("passport");
 const { Register,Login } = require("../controllers/authController");
-const {userVerification}=require("../middlewares/authMiddileware");
+const {userVerification}=require("../middlewares/authMiddleware");
 const router = require("express").Router();
 const multer=require("multer");
 const User=require("../models/user.models");
@@ -9,7 +9,6 @@ const path = require("path");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Save inside /src/uploads
     cb(null, path.join(__dirname,"..","uploads"));
   },
   filename: (req, file, cb) => {
@@ -63,7 +62,25 @@ router.put("/update-profile", userVerification, upload.single("profilePic"), asy
     res.status(500).json({ success: false, message: "Update failed", error: err.message });
   }
 });
-
+router.delete("/delete-profile",userVerification,async(req,res)=>{
+  console.log(" DELETE /delete-profile route loaded");
+  try{
+    const userId=req.user.id;
+    console.log("user" ,userId);
+    const user=await User.findById(userId);
+    if(!user){
+      return res.status(404).json({sucess:false,message:"user not found"});
+    }
+    const val=await User.findByIdAndDelete(userId);
+    console.log(val);
+    console.log("deleted");
+    res.clearCookie("token");
+    res.json({success:true,message:"Account deleted successfully"})
+  }
+  catch(err){
+    return res.status(500).json({ success: false, message: "Failed to delete profile", error: err.message })
+  }
+});
 router.get("/auth/google/callback",
     passport.authenticate("google",{
         session:false,

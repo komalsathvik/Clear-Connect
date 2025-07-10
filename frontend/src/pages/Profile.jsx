@@ -56,13 +56,33 @@ function Profile() {
             handleError("failed to update profile");
         }
     }
-    function handleDelete(){
+    async function handleDelete(){
       const token=localStorage.getItem("token");
+      console.log(token);
       if(!token){
         handleError("please login first");
         return;
       }
-      if (!window.confirm("Are you sure you want to delete your profile? This action is irreversible.")) return;
+      // if (!window.confirm("Are you sure you want to delete your profile? This action is irreversible.")) return;
+      try{
+        const res=await axios.delete("http://localhost:9000/delete-profile",{
+          headers:{
+            "Authorization":`Bearer ${localStorage.getItem("token")}`,
+          }
+        });
+        if(res.data.success){
+          handleSuccess("Account deleted successfully");
+          localStorage.clear();
+          setTimeout(() => {
+        navigate("/register");
+      }, 2500);
+    } else {
+      handleError("Failed to delete profile");
+        }
+      }
+      catch(err){
+handleError(err.response?.data?.message || "Error deleting profile");
+      }
     }
     useEffect(()=>{
   const storedUsername = localStorage.getItem("username");

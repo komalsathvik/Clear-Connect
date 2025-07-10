@@ -14,7 +14,7 @@ module.exports.Register=async(req,res,next)=>{
             username:username,
             email:email,
             password:password,
-            profilePic:"./images/2903-default-blue.png",
+            profilePic:"/images/2903-default-blue.png",
         });
         await user.save();
         const token = createSecretToken(user._id);
