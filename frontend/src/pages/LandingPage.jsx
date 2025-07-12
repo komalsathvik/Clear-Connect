@@ -1,7 +1,13 @@
-import React from 'react';
+import React,{useState,useEffect} from 'react';
 import Navbar from './Navbar';
 
 function LandingPage() {
+   let [meetingId,setMeetingId]=useState(""); 
+   let [meetingName,setMeetingName]=useState("");
+   function handleSubmit(){
+    console.log(meetingId);
+    console.log(meetingName);
+   }
   return (
     <>
       <Navbar />
@@ -78,7 +84,6 @@ function LandingPage() {
         id="createMeetingModal"
         tabIndex="-1"
         aria-labelledby="createMeetingModalLabel"
-        aria-hidden="true"
       >
         <div className="modal-dialog">
           <div className="modal-content text-dark">
@@ -96,16 +101,16 @@ function LandingPage() {
               <form>
                 <div className="mb-3">
                   <label style={{color:"white"}} className="form-label">Meeting ID</label>
-                  <input type="text" className="form-control" placeholder="Enter meeting ID" />
+                  <input type="text" className="form-control" placeholder="Enter meeting ID" onChange={(e)=>setMeetingId(e.target.value)}/>
                 </div>
                 <div className="mb-3">
-                  <label style={{color:"white"}} className="form-label">Scheduled Time</label>
-                  <input type="datetime-local" className="form-control" />
+                  <label style={{color:"white"}} className="form-label">Enter Meeting name</label>
+                  <input type="text" className="form-control" placeholder="Enter meeting Name" onChange={(e)=>setMeetingName(e.target.value)}/>
                 </div>
                 <div className='end'>
               <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
               &nbsp;&nbsp;&nbsp;&nbsp;
-              <button type="button" className="btn btn-primary">Create</button>
+              <button type="button" className="btn btn-primary" onClick={handleSubmit}>Create</button>
                 </div>
               </form>
             </div>
@@ -119,12 +124,11 @@ function LandingPage() {
         id="joinMeetingModal"
         tabIndex="-1"
         aria-labelledby="joinMeetingModalLabel"
-        aria-hidden="true"
       >
         <div className="modal-dialog">
           <div className="modal-content text-dark">
             <div className="modal-header">
-              <h5 style={{color:"white"}}  className="modal-title" id="joinMeetingModalLabel">Join a Meeting</h5>
+              <h5 style={{color:"white"}}  className="modal-title" id="joinMeetingModalLabel" >Join a Meeting</h5>
               <button
                 type="button"
                 className="btn-close"
@@ -136,13 +140,13 @@ function LandingPage() {
               <form>
                 <div className="mb-3">
                   <label style={{color:"white"}} className="form-label">Meeting ID</label>
-                  <input type="text" className="form-control" placeholder="Enter meeting ID" />
+                  <input type="text" className="form-control" placeholder="Enter meeting ID" onChange={(e)=>setMeetingId(e.target.value)}/>
                 </div>
               </form>
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="button" className="btn btn-success">Join</button>
+              <button type="button" className="btn btn-success" onClick={handleSubmit}>Join</button>
             </div>
           </div>
         </div>

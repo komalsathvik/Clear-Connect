@@ -133,7 +133,6 @@ localStorage.setItem("profilePic", data.user.profilePic || "/images/2903-default
   <button className="btn btn-danger w-100 mt-2">
   <i className="fab fa-google me-2"></i> Sign in with Google
 </button>
-
 </button>
       </div>
     </div>
