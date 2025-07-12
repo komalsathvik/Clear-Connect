@@ -42,6 +42,7 @@ function Register() {
       if (success) {
         handleSuccess(message);
         localStorage.setItem("token", data.user.token);
+        console.log(data.user);  
 localStorage.setItem("username", data.user.username);
 localStorage.setItem("email",data.user.email);
 localStorage.setItem("profilePic", data.user.profilePic || "/images/2903-default-blue.png");

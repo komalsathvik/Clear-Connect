@@ -18,13 +18,22 @@ module.exports.Register=async(req,res,next)=>{
         });
         await user.save();
         const token = createSecretToken(user._id);
-    res.cookie("token", token, {
-      withCredentials: true,
-      httpOnly: false,
-    });
-    res
-      .status(201)
-      .json({ message: "User signed in successfully", success: true, user });
+res.cookie("token", token, {
+  withCredentials: true,
+  httpOnly: false,
+});
+res.status(201).json({
+  message: "User signed in successfully",
+  success: true,
+  user: {
+    _id: user._id,
+    username: user.username,
+    email: user.email,
+    profilePic: user.profilePic,
+    token: token,
+  },
+});
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal Server Error" });
