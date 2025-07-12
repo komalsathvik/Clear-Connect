@@ -105,7 +105,7 @@ function Login() {
     window.open("http://localhost:9000/auth/google", "_self");
   }}
 >
-  Login with Google
+ <i className="fab fa-google me-2"></i> Login with google
 </button>
         </div>
       </div>
