@@ -14,9 +14,9 @@ function LandingPage() {
       <div className="container mt-3">
   <div className="row">
     <div className="col-6">
-      <h1 style={{ color: 'black' ,marginTop:"-35px"}}>Connect with your loved ones</h1>
+      <h3 style={{ color: 'black' ,marginTop:"-35px"}}>Clear-Connect - Where Conversations Drive Impact</h3>
       <p style={{ color: 'black', fontSize: 'large' }}>
-        Cover a distance by clear-connect. A platform to connect, talk, and spend time!
+       Your unified platform for secure, high-quality virtual meetings and meaningful connections — anytime, anywhere.
       </p>
     </div>
   </div>

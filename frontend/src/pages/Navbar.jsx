@@ -29,7 +29,22 @@ const profilePic = rawProfilePic
       <nav className="navbar navbar-expand-lg bg-transparent" style={{ width: "90vw", marginTop: "-20px" }}>
         <div className="container-fluid">
           <a className="navbar-brand text-black fw-bold" href="#">CLEAR - CONNECT</a>
-
+          <div style={{ marginLeft: "auto", marginRight: "-800px" }} className="dropdown">
+  <button
+    className="btn btn-outline-secondary dropdown-toggle d-flex align-items-center"
+    type="button"
+    id="themeDropdown"
+    data-bs-toggle="dropdown"
+    aria-expanded="false"
+  >
+    <i className="bi bi-palette me-2"></i> Theme
+  </button>
+  <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="themeDropdown">
+    <li><button className="dropdown-item" onClick={() => toggleTheme("light")}>🌞 Light</button></li>
+    <li><button className="dropdown-item" onClick={() => toggleTheme("dark")}>🌙 Dark</button></li>
+    <li><button className="dropdown-item" onClick={() => toggleTheme("Gold")}>🌇 Golden Hour</button></li>
+  </ul>
+</div>
           {!isLoggedIn ? (
             <div className="ms-auto d-flex align-items-center gap-3">
               <a className="nav-link text-black" href="/guest">Join as Guest</a>
