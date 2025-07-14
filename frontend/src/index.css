@@ -1,33 +1,78 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --bg-color: #fff7e6;
+  --text-color: #1a1a1a;
+  --card-bg: #fff1cc;
+  --card-hover: #ffe4a3;
+  --primary-color: #ff9900;
+  --btn-bg: linear-gradient(135deg, #efd19a, #ccffcc);
+  --btn-text: #000000;
+  --modal-bg: linear-gradient(135deg, #f0de7a, #a8e6cf);
+  --gradient-card-bg: linear-gradient(135deg, #efd19a, #ccffcc);
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+/* Light Theme */
+[data-theme='light'] {
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --card-bg: #f9f9f9;
+  --card-hover: #f0f0f0;
+  --primary-color: #007bff;
+  --btn-bg: #e6e6e6;
+  --btn-text: #000000;
+  --modal-bg: #ffffff;
+  --gradient-card-bg: linear-gradient(135deg, #f0f0f0, #ffffff);
 }
-a:hover {
-  color: #535bf2;
+
+/* Dark Theme */
+[data-theme='dark'] {
+  --bg-color: #121212;
+  --text-color: #ffffff;
+  --card-bg: #1e1e1e;
+  --card-hover: #2a2a2a;
+  --primary-color: #0d6efd;
+  --btn-bg: #1a1a1a;
+  --btn-text: #ffffff;
+  --modal-bg: #000000;
+  --gradient-card-bg: linear-gradient(135deg, #2a2a2a, #1e1e1e);
 }
 
 body {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
   margin: 0;
   display: flex;
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background-repeat: repeat;
+  background-size: cover;
+  background-position: center;
+  transition: background-color 0.3s, color 0.3s, background-image 0.3s ease-in-out;
+}
+
+[data-theme='golden'] body {
+  background-image: url("../images/istockphoto-1268728034-612x612.jpg");
+}
+
+[data-theme='light'] body {
+  background-image: url("../images/fragmented-white.jpg"); 
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+[data-theme='dark'] body {
+  background-color: #000000;
+}
+
+a {
+  font-weight: 500;
+  color: var(--primary-color);
+  text-decoration: none;
+}
+a:hover {
+  color: #535bf2;
 }
 
 h1 {
@@ -35,70 +80,68 @@ h1 {
   line-height: 1.1;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
+button,
+.btn-custom {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border: 1px solid var(--primary-color);
+  transition: background-color 0.25s, color 0.25s;
 }
-button:hover {
-  border-color: #646cff;
+
+button:hover,
+.btn-custom:hover {
+  background-color: var(--primary-color);
+  color: var(--bg-color);
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
-body {
-  background-image: url("../images/istockphoto-1268728034-612x612.jpg");
-  background-repeat: repeat; 
-  background-size: cover; 
-  background-position: center;
-}
-.signup-container {
+.signup-container,
+.login-container {
   padding: 15px;
-  background-color: #FFFADC;
+  background-color: var(--card-bg);
   border-radius: 5%;
   width: 400px;
   height: 430px;
 }
-
 .login-container {
-  padding: 15px;
-  background-color: #FFFADC;
-  border-radius: 5%;
   width: 300px;
   height: 330px;
 }
 
-.custom-input::placeholder {
-  color: white;
-  opacity: 1;
+.card,
+.gradient-card {
+  background: var(--gradient-card-bg);
+  color: var(--text-color);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
-/* Modal backdrop */
+
+.card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 24px rgba(255, 165, 0, 0.3);
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
@@ -106,111 +149,18 @@ body {
   z-index: 999;
 }
 
-/* Modal content */
 .modal-content {
-  background-color: #1f1f1f;
+  background: var(--modal-bg);
   padding: 2rem;
   border-radius: 12px;
   width: 100%;
   max-width: 420px;
-  color: white;
-  position: relative;
-  box-shadow: 0px 4px 20px rgba(255, 165, 0, 0.3);
-  animation: slideIn 0.3s ease;
-}
-
-/* Close button */
-.modal-content button.btn-close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-}
-
-/* Form inputs */
-.modal-content input,
-.modal-content textarea {
-  width: 100%;
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-  border: none;
-  border-radius: 8px;
-  background-color: #333;
-  color: white;
-  font-size: 1rem;
-}
-
-/* Submit button */
-.modal-content .submit-btn {
-  width: 100%;
-  padding: 0.8rem;
-  background: linear-gradient(to right, #ffa500, #90ee90); /* light orange to light green */
-  color: #1f1f1f;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.modal-content .submit-btn:hover {
-  background: linear-gradient(to right, #ff8800, #66cc66);
-}
-
-/* Slide-in animation */
-@keyframes slideIn {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* General button overrides for dialog triggers */
-.btn-custom {
-  padding: 0.6rem 1.2rem;
-  border-radius: 10px;
-  background: linear-gradient(to right, #ffa500, #90ee90);
-  color: #1f1f1f;
-  font-weight: 600;
-  border: none;
-  transition: 0.2s;
-  margin: 0.5rem;
-}
-
-.btn-custom:hover {
-  background: linear-gradient(to right, #ff8800, #66cc66);
-}
-/* Modal backdrop */
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-
-/* Modal content */
-.modal-content {
-  background: linear-gradient(135deg, #f0de7a, #a8e6cf); /* Light green gradient */
-  padding: 2rem;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 420px;
-  color: #1f1f1f; /* Dark text for contrast */
+  color: var(--text-color);
   position: relative;
   box-shadow: 0px 4px 20px rgba(0, 100, 0, 0.3);
   animation: slideIn 0.3s ease;
 }
 
-/* Close button */
 .modal-content button.btn-close {
   position: absolute;
   top: 1rem;
@@ -222,7 +172,6 @@ body {
   color: #555;
 }
 
-/* Form inputs */
 .modal-content input,
 .modal-content textarea {
   width: 100%;
@@ -235,24 +184,21 @@ body {
   font-size: 1rem;
 }
 
-/* Submit button */
 .modal-content .submit-btn {
   width: 100%;
   padding: 0.8rem;
-  background-color: #4caf50; /* green */
-  color: white;
+  background: linear-gradient(to right, #ffa500, #90ee90);
+  color: #1f1f1f;
   border: none;
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
   transition: background 0.2s ease-in-out;
 }
-
 .modal-content .submit-btn:hover {
-  background-color: #388e3c;
+  background: linear-gradient(to right, #ff8800, #66cc66);
 }
 
-/* Slide-in animation */
 @keyframes slideIn {
   from {
     transform: translateY(-20px);
@@ -263,19 +209,63 @@ body {
     opacity: 1;
   }
 }
-.gradient-card {
-  background: linear-gradient(135deg, #efd19a, #ccffcc);
-  color: #333;
+
+.btn-custom {
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  background: linear-gradient(to right, #ffa500, #90ee90);
+  color: #1f1f1f;
+  font-weight: 600;
   border: none;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: 0.2s;
+  margin: 0.5rem;
 }
-.card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.btn-custom:hover {
+  background: linear-gradient(to right, #ff8800, #66cc66);
 }
 
-.card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 12px 24px rgba(255, 165, 0, 0.3); /* soft orange glow */
+.custom-input::placeholder {
+  color: white;
+  opacity: 1;
+}
+::placeholder {
+  color: var(--text-color);
+  opacity: 0.7;
+}
+.modal-content input,
+.modal-content textarea {
+  color: var(--text-color);
+  background-color: var(--card-bg);
+}
+
+/* Final Themed Button */
+.themed-btn {
+  display: inline-block;
+  width: 100%;
+  padding: 0.6em 1.2em;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 500;
+  border: 1px solid transparent;
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  transition: background-color 0.25s, color 0.25s;
+  box-sizing: border-box;
+  text-align: center;
+  white-space: nowrap;
+}
+
+[data-theme='light'] .themed-btn:hover {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+[data-theme='dark'] .themed-btn:hover {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+[data-theme='golden'] .themed-btn:hover {
+  background-color: #000000;
+  color: #ffffff;
 }
