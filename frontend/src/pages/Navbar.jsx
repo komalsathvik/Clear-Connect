@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -33,10 +33,22 @@ function Navbar() {
 
   return (
     <>
-      <nav className="navbar navbar-expand-lg bg-transparent" style={{ width: "90vw", marginTop: "-20px" }}>
+      <nav
+        className="navbar navbar-expand-lg bg-transparent"
+        style={{ width: "90vw", marginTop: "-20px" }}
+      >
         <div className="container-fluid">
-          <a className="navbar-brand fw-bold" style={{ color: 'var(--text-color)' }} href="#">CLEAR - CONNECT</a>
-          <div style={{ marginLeft: "auto", marginRight: "-590px" }} className="dropdown">
+          <a
+            className="navbar-brand fw-bold"
+            style={{ color: "var(--text-color)" }}
+            href="#"
+          >
+            CLEAR - CONNECT
+          </a>
+          <div
+            style={{ marginLeft: "auto", marginRight: "-590px" }}
+            className="dropdown"
+          >
             <button
               className="btn btn-outline-secondary dropdown-toggle d-flex align-items-center"
               type="button"
@@ -46,19 +58,49 @@ function Navbar() {
             >
               <i className="bi bi-palette me-2"></i> Theme
             </button>
-            <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="themeDropdown">
-              <li><button className="dropdown-item" onClick={() => toggleTheme("light")}>🌞 Light</button></li>
-              <li><button className="dropdown-item" onClick={() => toggleTheme("dark")}>🌙 Dark</button></li>
-              <li><button className="dropdown-item" onClick={() => toggleTheme("golden")}>🌇 Golden Hour</button></li>
+            <ul
+              className="dropdown-menu dropdown-menu-end"
+              aria-labelledby="themeDropdown"
+            >
+              <li>
+                <button
+                  className="dropdown-item"
+                  onClick={() => toggleTheme("light")}
+                >
+                  🌞 Light
+                </button>
+              </li>
+              <li>
+                <button
+                  className="dropdown-item"
+                  onClick={() => toggleTheme("Dark")}
+                >
+                  🌙 Dark
+                </button>
+              </li>
+              <li>
+                <button
+                  className="dropdown-item"
+                  onClick={() => toggleTheme("golden")}
+                >
+                  🌇 Golden Hour
+                </button>
+              </li>
             </ul>
           </div>
 
           {/* 🔐 Login / Profile */}
           {!isLoggedIn ? (
             <div className="ms-auto d-flex align-items-center gap-3">
-              <a href="/guest"><button className="btn themed-btn">Join as Guest</button></a>
-              <a href="/register"><button className="btn themed-btn">Register</button></a>
-              <a href="/login"><button className="btn themed-btn">Login</button></a>
+              <a href="/guest">
+                <button className="btn themed-btn">Join as Guest</button>
+              </a>
+              <a href="/register">
+                <button className="btn themed-btn">Register</button>
+              </a>
+              <a href="/login">
+                <button className="btn themed-btn">Login</button>
+              </a>
             </div>
           ) : (
             <div className="dropdown ms-auto">
@@ -70,17 +112,34 @@ function Navbar() {
                 id="dropdownMenuButton"
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
-                style={{ width: "40px", height: "40px", borderRadius: "50%", cursor: "pointer" }}
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                }}
               />
-              <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton" data-bs-auto-close="outside">
-                <li><a className="dropdown-item" href="/profile">Edit Profile</a></li>
-                <li><button className="dropdown-item" onClick={logOut}>Logout</button></li>
+              <ul
+                className="dropdown-menu dropdown-menu-end"
+                aria-labelledby="dropdownMenuButton"
+                data-bs-auto-close="outside"
+              >
+                <li>
+                  <a className="dropdown-item" href="/profile">
+                    Edit Profile
+                  </a>
+                </li>
+                <li>
+                  <button className="dropdown-item" onClick={logOut}>
+                    Logout
+                  </button>
+                </li>
               </ul>
             </div>
           )}
         </div>
       </nav>
-      <div style={{ paddingTop: '80px' }}></div>
+      <div style={{ paddingTop: "80px" }}></div>
     </>
   );
 }
