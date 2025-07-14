@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import Navbar from './Navbar';
+import React, { useState } from "react";
+import Navbar from "./Navbar";
 
 function LandingPage() {
   const [meetingId, setMeetingId] = useState("");
@@ -16,24 +16,26 @@ function LandingPage() {
       <div className="container mt-3">
         <div className="row">
           <div className="col-6">
-            <h3 style={{ color: 'var(--text-color)', marginTop: "-35px" }}>
+            <h3 style={{ color: "var(--text-color)", marginTop: "-35px" }}>
               Clear-Connect - Where Conversations Drive Impact
             </h3>
-            <p style={{ color: 'var(--text-color)', fontSize: 'large' }}>
-              Your unified platform for secure, high-quality virtual meetings and meaningful connections — anytime, anywhere.
+            <p style={{ color: "var(--text-color)", fontSize: "large" }}>
+              Your unified platform for secure, high-quality virtual meetings
+              and meaningful connections — anytime, anywhere.
             </p>
           </div>
         </div>
-        <br /><br />
+        <br />
+        <br />
         <div className="row mt-6">
           <div className="col-md-3 mb-3">
-            <div className="card gradient-card border">
+            <div className="card gradient-card border border-dark">
               <div className="card-body">
                 <h5 className="card-title">Create A Meeting</h5>
                 <p className="card-text">Create your own instant meeting</p>
                 <button
                   type="button"
-                  className="themed-btn border"
+                  className="themed-btn border border-dark"
                   data-bs-toggle="modal"
                   data-bs-target="#createMeetingModal"
                 >
@@ -44,13 +46,15 @@ function LandingPage() {
           </div>
 
           <div className="col-md-3 mb-3">
-            <div className="card gradient-card border">
+            <div className="card gradient-card border border-dark">
               <div className="card-body">
                 <h5 className="card-title">Join A Meeting</h5>
-                <p className="card-text">Join a meeting quickly using meeting ID</p>
+                <p className="card-text">
+                  Join a meeting quickly using meeting ID
+                </p>
                 <button
                   type="button"
-                  className="themed-btn border"
+                  className="themed-btn border border-dark"
                   data-bs-toggle="modal"
                   data-bs-target="#joinMeetingModal"
                 >
@@ -61,33 +65,49 @@ function LandingPage() {
           </div>
 
           <div className="col-md-3 mb-3">
-            <div className="card gradient-card border">
+            <div className="card gradient-card border border-dark">
               <div className="card-body">
                 <h5 className="card-title">Past Meetings</h5>
                 <p className="card-text">Check your past meetings history</p>
-                <a href="#" className="themed-btn border">Past Meetings</a>
+                <a href="#" className="themed-btn border border-dark">
+                  Past Meetings
+                </a>
               </div>
             </div>
           </div>
 
           <div className="col-md-3 mb-3">
-            <div className="card gradient-card border">
+            <div className="card gradient-card border border-dark">
               <div className="card-body">
                 <h5 className="card-title">Edit your profile</h5>
                 <p className="card-text">Edit and view your profile data</p>
-                <a href="/profile" className="themed-btn border">Edit</a>
+                <a href="/profile" className="themed-btn border border-dark">
+                  Edit
+                </a>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="modal fade" id="createMeetingModal" tabIndex="-1" aria-labelledby="createMeetingModalLabel">
+      <div
+        className="modal fade"
+        id="createMeetingModal"
+        tabIndex="-1"
+        aria-labelledby="createMeetingModalLabel"
+      >
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title" id="createMeetingModalLabel">Create a Meeting</h5>
-              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              <h5 className="modal-title" id="createMeetingModalLabel">
+                Create a Meeting
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
             </div>
             <div className="modal-body">
               <form>
@@ -110,9 +130,21 @@ function LandingPage() {
                   />
                 </div>
                 <div className="end">
-                  <button type="button" className="themed-btn" data-bs-dismiss="modal">Cancel</button>
+                  <button
+                    type="button"
+                    className="themed-btn"
+                    data-bs-dismiss="modal"
+                  >
+                    Cancel
+                  </button>
                   &nbsp;&nbsp;&nbsp;&nbsp;
-                  <button type="button" className="themed-btn" onClick={handleSubmit}>Create</button>
+                  <button
+                    type="button"
+                    className="themed-btn"
+                    onClick={handleSubmit}
+                  >
+                    Create
+                  </button>
                 </div>
               </form>
             </div>
@@ -120,12 +152,24 @@ function LandingPage() {
         </div>
       </div>
 
-      <div className="modal fade" id="joinMeetingModal" tabIndex="-1" aria-labelledby="joinMeetingModalLabel">
+      <div
+        className="modal fade"
+        id="joinMeetingModal"
+        tabIndex="-1"
+        aria-labelledby="joinMeetingModalLabel"
+      >
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title" id="joinMeetingModalLabel">Join a Meeting</h5>
-              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              <h5 className="modal-title" id="joinMeetingModalLabel">
+                Join a Meeting
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
             </div>
             <div className="modal-body">
               <form>
@@ -141,8 +185,20 @@ function LandingPage() {
               </form>
             </div>
             <div className="modal-footer">
-              <button type="button" className="themed-btn" data-bs-dismiss="modal">Cancel</button>
-              <button type="button" className="themed-btn" onClick={handleSubmit}>Join</button>
+              <button
+                type="button"
+                className="themed-btn"
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="themed-btn"
+                onClick={handleSubmit}
+              >
+                Join
+              </button>
             </div>
           </div>
         </div>

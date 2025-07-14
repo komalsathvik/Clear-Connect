@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate,useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Login() {
   const navigate = useNavigate();
@@ -40,9 +41,12 @@ function Login() {
       const { success, message } = data;
       if (success) {
         handleSuccess(message);
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("username", data.username);
-    localStorage.setItem("profilePic", data.profilePic || "./images/2903-default-blue.png");
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("username", data.username);
+        localStorage.setItem(
+          "profilePic",
+          data.profilePic || "./images/2903-default-blue.png"
+        );
         setTimeout(() => navigate("/"), 1000);
       } else {
         handleError(message);
@@ -54,16 +58,20 @@ function Login() {
 
     setInputValue({ email: "", password: "" });
   };
+
   return (
     <>
-      <div className="col">
-        <div className="login-container" style={{ background: "linear-gradient(to right,rgb(243, 226, 193), #90ee90)" ,width:"450px",height:"400px"}}>
-          <p style={{ color: "black", fontWeight: "bold", fontSize: "24px" }}>
+      <div className="col d-flex justify-content-center align-items-center vh-100">
+        <div
+          className="theme-container"
+          style={{ width: "450px", height: "auto" }}
+        >
+          <p style={{ fontWeight: "bold", fontSize: "24px" }}>
             Login into your account
           </p>
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
-              <label htmlFor="exampleInputEmail1" className="form-label">
+              <label htmlFor="email" className="form-label">
                 Email address
               </label>
               <input
@@ -73,11 +81,12 @@ function Login() {
                 value={email}
                 placeholder="Enter your email"
                 onChange={handleOnChange}
+                required
               />
             </div>
 
             <div className="mb-3">
-              <label htmlFor="exampleInputPassword1" className="form-label">
+              <label htmlFor="password" className="form-label">
                 Password
               </label>
               <input
@@ -87,8 +96,10 @@ function Login() {
                 value={password}
                 placeholder="Enter your password"
                 onChange={handleOnChange}
+                required
               />
             </div>
+
             <button type="submit" className="btn btn-primary w-100">
               Submit
             </button>
@@ -99,14 +110,15 @@ function Login() {
           </form>
 
           <ToastContainer />
+
           <button
-  className="btn btn-danger w-100 mt-2"
-  onClick={() => {
-    window.open("http://localhost:9000/auth/google", "_self");
-  }}
->
- <i className="fab fa-google me-2"></i> Login with google
-</button>
+            className="btn btn-danger w-100 mt-3"
+            onClick={() => {
+              window.open("http://localhost:9000/auth/google", "_self");
+            }}
+          >
+            <i className="fab fa-google me-2"></i> Login with Google
+          </button>
         </div>
       </div>
     </>
