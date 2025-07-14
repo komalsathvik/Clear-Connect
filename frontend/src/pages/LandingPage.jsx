@@ -33,7 +33,7 @@ function LandingPage() {
                 <p className="card-text">Create your own instant meeting</p>
                 <button
                   type="button"
-                  className="themed-btn"
+                  className="themed-btn border"
                   data-bs-toggle="modal"
                   data-bs-target="#createMeetingModal"
                 >
@@ -50,7 +50,7 @@ function LandingPage() {
                 <p className="card-text">Join a meeting quickly using meeting ID</p>
                 <button
                   type="button"
-                  className="themed-btn"
+                  className="themed-btn border"
                   data-bs-toggle="modal"
                   data-bs-target="#joinMeetingModal"
                 >
@@ -65,7 +65,7 @@ function LandingPage() {
               <div className="card-body">
                 <h5 className="card-title">Past Meetings</h5>
                 <p className="card-text">Check your past meetings history</p>
-                <a href="#" className="themed-btn">Past Meetings</a>
+                <a href="#" className="themed-btn border">Past Meetings</a>
               </div>
             </div>
           </div>
@@ -75,7 +75,7 @@ function LandingPage() {
               <div className="card-body">
                 <h5 className="card-title">Edit your profile</h5>
                 <p className="card-text">Edit and view your profile data</p>
-                <a href="/profile" className="themed-btn">Edit</a>
+                <a href="/profile" className="themed-btn border">Edit</a>
               </div>
             </div>
           </div>

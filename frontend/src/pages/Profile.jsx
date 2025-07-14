@@ -63,7 +63,6 @@ function Profile() {
         handleError("please login first");
         return;
       }
-      // if (!window.confirm("Are you sure you want to delete your profile? This action is irreversible.")) return;
       try{
         const res=await axios.delete("http://localhost:9000/delete-profile",{
           headers:{
@@ -92,7 +91,9 @@ if(storedEmail)setEmail(storedEmail);
     },[])
   return (
     <>
-      <div className="container mt-5 p-4" style={{ minHeight:"650px",width: "600px",height:"500px", background: "linear-gradient(to right, #ffe5b4, #d0f0c0)", borderRadius: "1rem", boxShadow: "0px 4px 12px rgba(0,0,0,0.1)" }}>
+      <div className="container mt-5 p-4" style={{ minHeight:"650px",width: "600px",height:"500px", backgroundColor: "var(--bg-color)",
+    color: "var(--text-color)"
+ }}>
         <h3 className="text-center mb-4 fw-bold text-dark">View and Edit Your Profile</h3>
 
         <div className="mb-3">
