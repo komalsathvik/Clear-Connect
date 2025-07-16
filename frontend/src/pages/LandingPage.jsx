@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import Navbar from "./Navbar";
-
+import { useNavigate } from "react-router-dom";
 function LandingPage() {
   const [meetingId, setMeetingId] = useState("");
-  const [meetingName, setMeetingName] = useState("");
-
+  const [username, setUsername] = useState("");
+  const Navigate = useNavigate();
   function handleSubmit() {
-    console.log(meetingId);
-    console.log(meetingName);
+    Navigate("/preview", { state: { meetingId, username } });
   }
 
   return (
@@ -116,17 +115,17 @@ function LandingPage() {
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="Enter meeting ID"
+                    placeholder="Create a meeting ID"
                     onChange={(e) => setMeetingId(e.target.value)}
                   />
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Enter Meeting name</label>
+                  <label className="form-label">Join as name</label>
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="Enter meeting Name"
-                    onChange={(e) => setMeetingName(e.target.value)}
+                    placeholder="Enter Name"
+                    onChange={(e) => setUsername(e.target.value)}
                   />
                 </div>
                 <div className="end">
@@ -180,6 +179,12 @@ function LandingPage() {
                     className="form-control"
                     placeholder="Enter meeting ID"
                     onChange={(e) => setMeetingId(e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Enter Name"
+                    onChange={(e) => setUsername(e.target.value)}
                   />
                 </div>
               </form>
