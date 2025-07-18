@@ -42,6 +42,18 @@ io.on("connection", (socket) => {
         username: io.sockets.sockets.get(id)?.data?.username || "user",
       }));
     socket.emit("all-users", usersData);
+    socket.to(meetingid).emit("user-joined", {
+      userId: socket.id,
+      username,
+    });
+
+    socket.on("signal", ({ to, from, signal }) => {
+      io.to(to).emit("signal", { from, signal });
+    });
+
+    socket.on("disconnect", () => {
+      socket.to(roomId).emit("user-left", { userId: socket.id });
+    });
   });
 });
 
