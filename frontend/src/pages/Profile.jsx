@@ -103,7 +103,7 @@ function Profile() {
           color: "var(--text-color)",
         }}
       >
-        <h3 className="text-center mb-4 fw-bold text-dark">
+        <h3 className="text-center mb-4 fw-bold text-blue">
           View and Edit Your Profile
         </h3>
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 function Preview() {
   const { state } = useLocation();
@@ -8,6 +8,7 @@ function Preview() {
   const streamRef = useRef(null);
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
+  const navigate = useNavigate();
   useEffect(() => {
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
@@ -38,7 +39,9 @@ function Preview() {
       setAudioEnabled(audioTrack.enabled);
     }
   };
-  const handleJoin = () => {};
+  const handleJoin = () => {
+    navigate("/meeting", { state: { meetingId, username } });
+  };
   return (
     <div style={{ textAlign: "center", marginTop: "30px" }}>
       <h1 style={{ marginTop: "-40px" }}>Preview</h1>
