@@ -5,6 +5,7 @@ function LandingPage() {
   const [meetingId, setMeetingId] = useState("");
   const [username, setUsername] = useState("");
   const Navigate = useNavigate();
+
   function handleSubmit() {
     Navigate("/preview", { state: { meetingId, username } });
   }

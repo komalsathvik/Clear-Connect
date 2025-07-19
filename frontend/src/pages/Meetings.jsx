@@ -1,8 +1,6 @@
-import React from 'react';
+import React from "react";
 function Meetings() {
-    return ( <>
-    
-    </> );
+  return <></>;
 }
 
 export default Meetings;
