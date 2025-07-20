@@ -4,11 +4,12 @@ require("dotenv").config();
 const http = require("http");
 const { Server } = require("socket.io");
 const app = express();
-const PORT = process.env.PORT;
+const PORT = 9000;
 const url = process.env.MONGO_URL;
 const cors = require("cors");
 const authRoute = require("./routes/authRoute");
 const path = require("path");
+const { handleSocket } = require("./controllers/socketController.js");
 const passport = require("passport");
 require("../config/Passport");
 
@@ -26,35 +27,15 @@ app.use("/", authRoute);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const io = new Server(server, {
-  origin: "*",
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
 });
+
 io.on("connection", (socket) => {
-  socket.on("join-room", ({ username, meetingid }) => {
-    socket.join(meetingid);
-    socket.data.username = username;
-    const usersInRoom = Array.from(
-      io.sockets.adapter.rooms.get(meetingid) || []
-    );
-    const usersData = usersInRoom
-      .filter((id) => id !== socket.id)
-      .map((id) => ({
-        userId: id,
-        username: io.sockets.sockets.get(id)?.data?.username || "user",
-      }));
-    socket.emit("all-users", usersData);
-    socket.to(meetingid).emit("user-joined", {
-      userId: socket.id,
-      username,
-    });
-
-    socket.on("signal", ({ to, from, signal }) => {
-      io.to(to).emit("signal", { from, signal });
-    });
-
-    socket.on("disconnect", () => {
-      socket.to(roomId).emit("user-left", { userId: socket.id });
-    });
-  });
+  handleSocket(io, socket);
 });
 
 async function connectDb() {

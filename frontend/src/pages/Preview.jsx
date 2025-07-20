@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
 function Preview() {
   const { state } = useLocation();
   const { meetingId, username } = state;
@@ -8,22 +7,29 @@ function Preview() {
   const streamRef = useRef(null);
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
+
   const navigate = useNavigate();
+  document.body.classList.remove("modal-open");
+
   useEffect(() => {
-    navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
-      .then((stream) => {
+    const backdrop = document.querySelector(".modal-backdrop");
+    if (backdrop) {
+      backdrop.remove();
+    }
+    const getVideo = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+        videoRef.current.srcObject = stream;
         streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    return () => {
-      streamRef.current?.getTracks().forEach((track) => track.stop());
+        await localVideoRef.current.play();
+      } catch (error) {
+        console.log("error");
+      }
     };
+    getVideo();
   }, []);
   const toggleVideo = () => {
     const videoTrack = streamRef.current?.getVideoTracks()[0];
@@ -40,7 +46,9 @@ function Preview() {
     }
   };
   const handleJoin = () => {
-    navigate("/meeting", { state: { meetingId, username } });
+    const isVideo = videoEnabled;
+    const isAudio = audioEnabled;
+    navigate("/meeting", { state: { meetingId, username, isVideo, isAudio } });
   };
   return (
     <div style={{ textAlign: "center", marginTop: "30px" }}>

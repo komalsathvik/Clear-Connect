@@ -7,6 +7,11 @@ function LandingPage() {
   const Navigate = useNavigate();
 
   function handleSubmit() {
+    const modal = document.getElementById("create");
+    const modalInstance = bootstrap.Modal.getInstance(modal);
+    if (modalInstance) {
+      modalInstance.hide();
+    }
     Navigate("/preview", { state: { meetingId, username } });
   }
 
@@ -27,7 +32,7 @@ function LandingPage() {
         </div>
         <br />
         <br />
-        <div className="row mt-6">
+        <div className="row mt-6" id="create">
           <div className="col-md-3 mb-3">
             <div className="card gradient-card border border-dark">
               <div className="card-body">
