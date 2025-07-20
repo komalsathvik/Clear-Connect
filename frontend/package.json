@@ -27,6 +27,7 @@
     "react-router-dom": "^7.6.2",
     "react-toastify": "^11.0.5",
     "simple-peer": "^9.11.1",
+    "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "stream-browserify": "^3.0.0"
   },

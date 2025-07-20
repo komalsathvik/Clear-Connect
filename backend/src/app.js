@@ -25,13 +25,11 @@ app.use(
 app.use(passport.initialize());
 app.use("/", authRoute);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
+app.get("/", (req, res) => {
+  res.send("server page");
+});
 const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
+  cors: { origin: "*" },
 });
 
 io.on("connection", (socket) => {

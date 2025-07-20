@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { io } from "socket.io-client";
+import  io from "socket.io-client";
 const socket = io("http://localhost:9000");
 function Chats({ username, meetingId }) {
   const [message, setMessage] = useState("");
@@ -33,15 +33,17 @@ function Chats({ username, meetingId }) {
     <>
       <h1>Chat</h1>
       <div className="div">
-        {chat.map((msg, index) => {
+        {chat.map((msg) => {
           return (
-            <p key={index}>
+            <p>
               {" "}
               <b>{msg.username}</b> : {msg.message}
             </p>
           );
         })}
       </div>
+
+      <p>{username}</p>
       <input
         type="text"
         placeholder="Enter message"
