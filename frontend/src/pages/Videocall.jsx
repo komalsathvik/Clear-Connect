@@ -126,69 +126,168 @@ export default function Videocall() {
   };
 
   return (
-    <div>
-      <h2 style={{ textAlign: "center" }}>Room: {meetingId}</h2>
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          gap: 20,
-          padding: 20,
-        }}
-      >
-        <Video
-          key={mySocketId}
-          stream={streamRef.current}
-          username={`${username} (You)`}
-          isSelf={true}
-          userVideoRef={userVideo}
-          videoEnabled={videoEnabled}
-        />
-        {peers.map(({ peerID, stream, username }) => (
-          <Video key={peerID} stream={stream} username={username} />
-        ))}
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "20px",
-          marginTop: "20px",
-        }}
-      >
-        <button
-          onClick={toggleVideo}
+    <>
+      <div className="row">
+        <h2 style={{ textAlign: "center" }}>Room: {meetingId}</h2>
+        <div
           style={{
-            padding: "10px 20px",
-            backgroundColor: videoEnabled ? "#4CAF50" : "#f44336",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-            fontSize: "16px",
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: 20,
+            padding: 20,
           }}
         >
-          {videoEnabled ? "Video Off" : "Video On"}
-        </button>
-
-        <button
-          onClick={toggleAudio}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: audioEnabled ? "#4CAF50" : "#f44336",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-            fontSize: "16px",
-          }}
-        >
-          {audioEnabled ? "Mic Off" : "Mic On"}
-        </button>
+          <Video
+            key={mySocketId}
+            stream={streamRef.current}
+            username={`${username} (You)`}
+            isSelf={true}
+            userVideoRef={userVideo}
+            videoEnabled={videoEnabled}
+          />
+          {peers.map(({ peerID, stream, username }) => (
+            <Video key={peerID} stream={stream} username={username} />
+          ))}
+        </div>
       </div>
-    </div>
+      <div className="row">
+        <div className="col-2 p-5 mt-2">
+          <button
+            onClick={toggleAudio}
+            style={{
+              padding: "10px 20px",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+              fontSize: "16px",
+            }}
+          >
+            {audioEnabled ? (
+              <img
+                width="50"
+                height="50"
+                src="https://img.icons8.com/ios-filled/50/microphone--v1.png"
+                alt="microphone--v1"
+              />
+            ) : (
+              <img
+                width="50"
+                height="50"
+                src="https://img.icons8.com/ios-filled/50/no-microphone--v1.png"
+                alt="no-microphone--v1"
+              />
+            )}
+          </button>
+        </div>
+        <div className="col-2 p-5 mt-2">
+          <button
+            onClick={toggleVideo}
+            style={{
+              padding: "10px 20px",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+              fontSize: "16px",
+            }}
+          >
+            {videoEnabled ? (
+              <img
+                width="50"
+                height="50"
+                src="https://img.icons8.com/ios-filled/50/video-call.png"
+                alt="video-call"
+              />
+            ) : (
+              <img
+                width="50"
+                height="50"
+                src="https://img.icons8.com/ios-filled/50/no-video--v1.png"
+                alt="no-video--v1"
+              />
+            )}
+          </button>
+        </div>
+        <div className="col-2 p-5 mt-2">
+          <button
+            style={{
+              padding: "10px 20px",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+              fontSize: "16px",
+            }}
+          >
+            <img
+              width="50"
+              height="50"
+              src="https://img.icons8.com/ios-filled/50/present-to-all.png"
+              alt="present-to-all"
+            />
+          </button>
+        </div>
+        <div className="col-2 p-5 mt-2">
+          <button
+            style={{
+              padding: "10px 20px",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+              fontSize: "16px",
+            }}
+          >
+            <img
+              width="50"
+              height="50"
+              src="https://img.icons8.com/ios-filled/50/conference-foreground-selected.png"
+              alt="conference-foreground-selected"
+            />
+          </button>
+        </div>
+        <div className="col-2 p-5 mt-2">
+          <button
+            style={{
+              padding: "10px 20px",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+              fontSize: "16px",
+            }}
+          >
+            <img
+              width="50"
+              height="50"
+              src="https://img.icons8.com/ios-glyphs/50/chat.png"
+              alt="chat"
+            />
+          </button>
+        </div>
+        <div className="col-2 p-5 mt-2">
+          <button
+            style={{
+              padding: "10px 20px",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+              fontSize: "16px",
+            }}
+          >
+            <img
+              width="50"
+              height="50"
+              src="https://img.icons8.com/android/24/end-call.png"
+              alt="end-call"
+            />
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
 

@@ -9,12 +9,12 @@ function Meeting() {
     <>
       <div className="container">
         <div className="row">
-          <div className="col-6">
+          <div className="col-12">
             <Videocall />
           </div>
-          <div className="col-6">
+          {/* <div className="col-6">
             <Chats meetingId={meetingId} username={username} />
-          </div>
+          </div> */}
         </div>
       </div>
     </>
