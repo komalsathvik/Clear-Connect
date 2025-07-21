@@ -4,18 +4,21 @@ import io from "socket.io-client";
 import Peer from "simple-peer";
 
 const socket = io("http://localhost:9000");
-
-export default function VideoCall() {
+export default function Videocall() {
   const { state } = useLocation();
   const { username, meetingId, isVideo, isAudio } = state;
   const [peers, setPeers] = useState([]);
-  const [videoEnabled, setVideoEnabled] = useState(isVideo);
-  const [audioEnabled, setAudioEnabled] = useState(isAudio);
+  const [videoEnabled, setVideoEnabled] = useState(true);
+  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [mySocketId, setMySocketId] = useState("");
   const userVideo = useRef();
   const peersRef = useRef([]);
   const streamRef = useRef();
 
   useEffect(() => {
+    socket.on("connect", () => {
+      setMySocketId(socket.id);
+    });
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
@@ -36,9 +39,18 @@ export default function VideoCall() {
             peersArr.push({ peerID: userId, peer, username: otherusername });
           });
           setPeers(peersArr);
+          peersRef.current = peersArr.map(({ peerID, peer, username }) => ({
+            peerID,
+            peer,
+            username,
+          }));
         });
 
         socket.on("user-joined", ({ userId, username: newusername }) => {
+          const alreadyConnected = peersRef.current.find(
+            (p) => p.peerID === userId
+          );
+          if (alreadyConnected || userId === socket.id) return;
           const peer = new Peer({
             initiator: false,
             trickle: false,
@@ -137,7 +149,7 @@ export default function VideoCall() {
         }}
       >
         <Video
-          key={socket.id}
+          key={mySocketId}
           peer={{ on: () => {}, off: () => {} }}
           stream={streamRef.current}
           username={`${username} (You)`}
@@ -171,7 +183,7 @@ export default function VideoCall() {
             fontSize: "16px",
           }}
         >
-          {videoEnabled ? "Video On" : "Video Off"}
+          {videoEnabled ? "Video Off" : "Video On"}
         </button>
 
         <button
@@ -186,7 +198,7 @@ export default function VideoCall() {
             fontSize: "16px",
           }}
         >
-          {audioEnabled ? "Mic On" : "Mic Off"}
+          {audioEnabled ? "Mic Off" : "Mic On"}
         </button>
       </div>
     </div>

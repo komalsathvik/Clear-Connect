@@ -1,11 +1,10 @@
-let usersInRoom = {};
 function handleSocket(io, socket) {
   console.log("User is connected!!", socket.id);
 
   // Chat logic
   socket.on("join-meeting", ({ meetingId }) => {
     socket.join(meetingId);
-    console.log("user joined meeting", socket.id);
+    console.log(`User ${socket.id} joined meeting ${meetingId} for chat.`);
   });
 
   socket.on("client-msg", ({ message, username, meetingId }) => {
@@ -14,48 +13,35 @@ function handleSocket(io, socket) {
   });
 
   // Video call logic
-  console.log("User is connected!!", socket.id);
-
-  socket.on("join-meeting", ({ meetingId }) => {
-    socket.join(meetingId);
-    console.log("user joined meeting", socket.id);
-  });
-
-  socket.on("client-msg", ({ message, username, meetingId }) => {
-    io.to(meetingId).emit("server-msg", { username, message });
-  });
-
-  socket.on("join-room", ({ username, meetingId }) => {
-    socket.join(meetingId);
+  socket.on("join-room", ({ meetingId, username }) => {
     socket.data.username = username;
-    socket.data.meetingId = meetingId;
+    socket.join(meetingId);
 
-    if (!usersInRoom[meetingId]) usersInRoom[meetingId] = [];
-    usersInRoom[meetingId].push(socket.id);
-
-    const usersData = usersInRoom[meetingId]
+    // Notify the joining user about existing users
+    const usersInRoom = Array.from(
+      io.sockets.adapter.rooms.get(meetingId) || []
+    )
       .filter((id) => id !== socket.id)
       .map((id) => ({
         userId: id,
-        username: io.sockets.sockets.get(id)?.data?.username || "user",
+        username: io.sockets.sockets.get(id)?.data?.username || "User",
       }));
+    socket.emit("all-users", usersInRoom);
 
-    socket.emit("all-users", usersData);
-    socket.to(meetingId).emit("user-joined", { userId: socket.id, username });
+    // Notify others that a new user joined
+    socket.to(meetingId).emit("user-joined", {
+      userId: socket.id,
+      username,
+    });
 
+    // Forward signaling data to the intended peer
     socket.on("signal", ({ to, from, signal }) => {
       io.to(to).emit("signal", { from, signal });
     });
 
+    // When someone leaves
     socket.on("disconnect", () => {
-      const meetingId = socket.data.meetingId;
-      if (meetingId) {
-        usersInRoom[meetingId] = usersInRoom[meetingId]?.filter(
-          (id) => id !== socket.id
-        );
-        socket.to(meetingId).emit("user-left", { userId: socket.id });
-        if (usersInRoom[meetingId]?.length === 0) delete usersInRoom[meetingId];
-      }
+      socket.to(meetingId).emit("user-left", { userId: socket.id });
     });
   });
 }

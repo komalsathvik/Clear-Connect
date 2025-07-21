@@ -24,9 +24,9 @@ function Preview() {
         });
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
-        await localVideoRef.current.play();
+        await videoRef.current.play();
       } catch (error) {
-        console.log("error");
+        console.log(error);
       }
     };
     getVideo();
