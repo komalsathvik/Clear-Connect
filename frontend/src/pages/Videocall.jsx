@@ -4,21 +4,25 @@ import io from "socket.io-client";
 import Peer from "simple-peer";
 
 const socket = io("http://localhost:9000");
+
 export default function Videocall() {
   const { state } = useLocation();
   const { username, meetingId, isVideo, isAudio } = state;
+
   const [peers, setPeers] = useState([]);
-  const [videoEnabled, setVideoEnabled] = useState(true);
-  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [videoEnabled, setVideoEnabled] = useState(isVideo);
+  const [audioEnabled, setAudioEnabled] = useState(isAudio);
   const [mySocketId, setMySocketId] = useState("");
+
   const userVideo = useRef();
-  const peersRef = useRef([]);
   const streamRef = useRef();
+  const peersRef = useRef([]);
 
   useEffect(() => {
     socket.on("connect", () => {
       setMySocketId(socket.id);
     });
+
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
@@ -28,49 +32,31 @@ export default function Videocall() {
         socket.emit("join-room", { meetingId, username });
 
         socket.on("all-users", (users) => {
-          const peersArr = [];
-          users.forEach(({ userId, username: otherusername }) => {
-            const peer = createPeer(userId, socket.id, stream, otherusername);
-            peersRef.current.push({
-              peerID: userId,
-              peer,
-              username: otherusername,
+          users.forEach(({ userId, username: otherUsername }) => {
+            const peer = createPeer(userId, socket.id, stream);
+            const peerObj = { peerID: userId, peer, username: otherUsername };
+
+            peersRef.current.push(peerObj);
+
+            peer.on("stream", (remoteStream) => {
+              setPeers((prev) => [
+                ...prev,
+                { ...peerObj, stream: remoteStream },
+              ]);
             });
-            peersArr.push({ peerID: userId, peer, username: otherusername });
           });
-          setPeers(peersArr);
-          peersRef.current = peersArr.map(({ peerID, peer, username }) => ({
-            peerID,
-            peer,
-            username,
-          }));
         });
 
-        socket.on("user-joined", ({ userId, username: newusername }) => {
-          const alreadyConnected = peersRef.current.find(
-            (p) => p.peerID === userId
-          );
-          if (alreadyConnected || userId === socket.id) return;
-          const peer = new Peer({
-            initiator: false,
-            trickle: false,
-            stream: streamRef.current,
-          });
+        socket.on("user-joined", ({ userId, username: newUsername }) => {
+          const peer = addPeer(userId, stream);
 
-          peer.on("signal", (signal) => {
-            socket.emit("signal", { to: userId, from: socket.id, signal });
-          });
+          const peerObj = { peerID: userId, peer, username: newUsername };
 
-          peersRef.current.push({
-            peerID: userId,
-            peer,
-            username: newusername,
-          });
+          peersRef.current.push(peerObj);
 
-          setPeers((users) => [
-            ...users,
-            { peerID: userId, peer, username: newusername },
-          ]);
+          peer.on("stream", (remoteStream) => {
+            setPeers((prev) => [...prev, { ...peerObj, stream: remoteStream }]);
+          });
         });
 
         socket.on("signal", ({ from, signal }) => {
@@ -82,59 +68,62 @@ export default function Videocall() {
           peersRef.current = peersRef.current.filter(
             (p) => p.peerID !== userId
           );
-          setPeers((users) => users.filter((p) => p.peerID !== userId));
+          setPeers((prev) => prev.filter((p) => p.peerID !== userId));
         });
       });
 
-    return () => socket.disconnect();
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
-  // Toggle video stream
-  const toggleVideo = () => {
-    if (streamRef.current) {
-      const videoTrack = streamRef.current.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setVideoEnabled(videoTrack.enabled);
-
-        // Update all peer connections
-        peersRef.current.forEach(({ peer }) => {
-          if (peer.streams && peer.streams[0]) {
-            const newStream = new MediaStream(peer.streams[0].getTracks());
-            newStream.getVideoTracks()[0].enabled = videoTrack.enabled;
-            peer.replaceTrack(
-              peer.streams[0].getVideoTracks()[0],
-              newStream.getVideoTracks()[0],
-              peer.streams[0]
-            );
-          }
-        });
-      }
-    }
-  };
-
-  // Toggle audio stream
-  const toggleAudio = () => {
-    if (streamRef.current) {
-      const audioTrack = streamRef.current.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
-        setAudioEnabled(audioTrack.enabled);
-      }
-    }
-  };
-
-  function createPeer(userToSignal, callerID, stream, username) {
+  function createPeer(userToSignal, callerID, stream) {
     const peer = new Peer({
       initiator: true,
       trickle: false,
       stream,
     });
+
     peer.on("signal", (signal) => {
       socket.emit("signal", { to: userToSignal, from: callerID, signal });
     });
+
     return peer;
   }
+
+  function addPeer(incomingSignalUserId, stream) {
+    const peer = new Peer({
+      initiator: false,
+      trickle: false,
+      stream,
+    });
+
+    peer.on("signal", (signal) => {
+      socket.emit("signal", {
+        to: incomingSignalUserId,
+        from: socket.id,
+        signal,
+      });
+    });
+
+    return peer;
+  }
+
+  const toggleVideo = () => {
+    const videoTrack = streamRef.current?.getVideoTracks()[0];
+    if (videoTrack) {
+      videoTrack.enabled = !videoTrack.enabled;
+      setVideoEnabled(videoTrack.enabled);
+    }
+  };
+
+  const toggleAudio = () => {
+    const audioTrack = streamRef.current?.getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = !audioTrack.enabled;
+      setAudioEnabled(audioTrack.enabled);
+    }
+  };
 
   return (
     <div>
@@ -150,19 +139,17 @@ export default function Videocall() {
       >
         <Video
           key={mySocketId}
-          peer={{ on: () => {}, off: () => {} }}
           stream={streamRef.current}
           username={`${username} (You)`}
           isSelf={true}
           userVideoRef={userVideo}
           videoEnabled={videoEnabled}
         />
-        {peers.map(({ peer, peerID, username }) => (
-          <Video key={peerID} peer={peer} username={username} />
+        {peers.map(({ peerID, stream, username }) => (
+          <Video key={peerID} stream={stream} username={username} />
         ))}
       </div>
 
-      {/* Control buttons */}
       <div
         style={{
           display: "flex",
@@ -205,21 +192,22 @@ export default function Videocall() {
   );
 }
 
-function Video({ peer, username, isSelf = false, userVideoRef, videoEnabled }) {
+function Video({
+  stream,
+  username,
+  isSelf = false,
+  userVideoRef,
+  videoEnabled = true,
+}) {
   const ref = useRef();
 
   useEffect(() => {
-    if (isSelf && userVideoRef) {
-      if (userVideoRef.current) {
-        userVideoRef.current.srcObject = userVideoRef.current.srcObject;
-      }
-      return;
+    if (isSelf && userVideoRef?.current) {
+      userVideoRef.current.srcObject = userVideoRef.current.srcObject;
+    } else if (ref.current && stream) {
+      ref.current.srcObject = stream;
     }
-
-    peer.on("stream", (stream) => {
-      if (ref.current) ref.current.srcObject = stream;
-    });
-  }, [peer, isSelf, userVideoRef]);
+  }, [stream]);
 
   return (
     <div style={{ textAlign: "center" }}>
@@ -232,7 +220,7 @@ function Video({ peer, username, isSelf = false, userVideoRef, videoEnabled }) {
         style={{
           borderRadius: 10,
           border: "2px solid #ccc",
-          display: videoEnabled || !isSelf ? "block" : "none",
+          display: isSelf ? (videoEnabled ? "block" : "none") : "block",
         }}
       />
       {isSelf && !videoEnabled && (
