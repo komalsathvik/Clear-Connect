@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import "./App.css";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
@@ -10,12 +10,22 @@ import Profile from "./pages/Profile";
 import Preview from "./pages/Preview";
 import Meeting from "./pages/Meeting";
 
-function App() {
-  const setTheme = (theme) => {
-    localStorage.setItem("theme", theme);
-    document.documentElement.setAttribute("data-theme", theme);
-  };
+function ThemeWrapper({ children }) {
+  const location = useLocation();
 
+  useEffect(() => {
+    const isMeetingPage = location.pathname === "/meeting";
+    if (isMeetingPage) {
+      document.body.classList.add("video-page");
+    } else {
+      document.body.classList.remove("video-page");
+    }
+  }, [location.pathname]);
+
+  return children;
+}
+
+function App() {
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "golden";
     document.documentElement.setAttribute("data-theme", savedTheme);
@@ -23,16 +33,18 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/guest" element={<Guest />} />
-        <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/preview" element={<Preview />} />
-        <Route path="/meeting" element={<Meeting />} />
-      </Routes>
+      <ThemeWrapper>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/guest" element={<Guest />} />
+          <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/preview" element={<Preview />} />
+          <Route path="/meeting" element={<Meeting />} />
+        </Routes>
+      </ThemeWrapper>
     </BrowserRouter>
   );
 }

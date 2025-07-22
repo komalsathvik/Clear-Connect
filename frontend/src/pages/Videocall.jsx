@@ -2,17 +2,21 @@ import React, { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import io from "socket.io-client";
 import Peer from "simple-peer";
+import "../Videocall.css";
 
 const socket = io("http://localhost:9000");
 
 export default function Videocall() {
   const { state } = useLocation();
-  const { username, meetingId, isVideo, isAudio } = state;
+  const { username, meetingId } = state;
 
   const [peers, setPeers] = useState([]);
-  const [videoEnabled, setVideoEnabled] = useState(isVideo);
-  const [audioEnabled, setAudioEnabled] = useState(isAudio);
+  const [videoEnabled, setVideoEnabled] = useState(true);
+  const [audioEnabled, setAudioEnabled] = useState(true);
   const [mySocketId, setMySocketId] = useState("");
+  const [chatOpen, setChatOpen] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
 
   const userVideo = useRef();
   const streamRef = useRef();
@@ -21,7 +25,13 @@ export default function Videocall() {
   useEffect(() => {
     socket.on("connect", () => {
       setMySocketId(socket.id);
+      socket.emit("join-meeting", { meetingId });
     });
+
+    const handleServerMsg = ({ username: sender, message }) => {
+      setMessages((prev) => [...prev, { sender, text: message }]);
+    };
+    socket.on("server-msg", handleServerMsg);
 
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
@@ -49,7 +59,6 @@ export default function Videocall() {
 
         socket.on("user-joined", ({ userId, username: newUsername }) => {
           const peer = addPeer(userId, stream);
-
           const peerObj = { peerID: userId, peer, username: newUsername };
 
           peersRef.current.push(peerObj);
@@ -73,31 +82,21 @@ export default function Videocall() {
       });
 
     return () => {
+      socket.off("server-msg", handleServerMsg);
       socket.disconnect();
     };
   }, []);
 
-  function createPeer(userToSignal, callerID, stream) {
-    const peer = new Peer({
-      initiator: true,
-      trickle: false,
-      stream,
-    });
-
+  const createPeer = (userToSignal, callerID, stream) => {
+    const peer = new Peer({ initiator: true, trickle: false, stream });
     peer.on("signal", (signal) => {
       socket.emit("signal", { to: userToSignal, from: callerID, signal });
     });
-
     return peer;
-  }
+  };
 
-  function addPeer(incomingSignalUserId, stream) {
-    const peer = new Peer({
-      initiator: false,
-      trickle: false,
-      stream,
-    });
-
+  const addPeer = (incomingSignalUserId, stream) => {
+    const peer = new Peer({ initiator: false, trickle: false, stream });
     peer.on("signal", (signal) => {
       socket.emit("signal", {
         to: incomingSignalUserId,
@@ -105,9 +104,8 @@ export default function Videocall() {
         signal,
       });
     });
-
     return peer;
-  }
+  };
 
   const toggleVideo = () => {
     const videoTrack = streamRef.current?.getVideoTracks()[0];
@@ -125,19 +123,75 @@ export default function Videocall() {
     }
   };
 
+  const toggleChat = () => {
+    setChatOpen((prev) => !prev);
+  };
+
+  const sendMessage = () => {
+    if (newMessage.trim()) {
+      socket.emit("client-msg", {
+        message: newMessage,
+        username,
+        meetingId,
+      });
+      setNewMessage("");
+    }
+  };
+
   return (
-    <>
-      <div className="row">
-        <h2 style={{ textAlign: "center" }}>Room: {meetingId}</h2>
+    <div className="video-wrapper">
+      <h2 className="room-title">Room: {meetingId}</h2>
+
+      <div className={`main-content ${chatOpen ? "chat-open" : ""}`}>
         <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "center",
-            gap: 20,
-            padding: 20,
-          }}
+          className={`remote-grid users-${peers.length + (chatOpen ? 1 : 0)}`}
         >
+          {peers.map(({ peerID, stream, username }) => (
+            <Video key={peerID} stream={stream} username={username} />
+          ))}
+
+          {chatOpen && (
+            <Video
+              key={mySocketId}
+              stream={streamRef.current}
+              username={`${username} (You)`}
+              isSelf={true}
+              userVideoRef={userVideo}
+              videoEnabled={videoEnabled}
+            />
+          )}
+        </div>
+
+        {chatOpen && (
+          <div className="chat-box">
+            <div className="chat-messages">
+              {messages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`chat-message ${
+                    msg.sender === username ? "my-message" : "other-message"
+                  }`}
+                >
+                  <strong>{msg.sender}:</strong> {msg.text}
+                </div>
+              ))}
+            </div>
+            <div className="chat-input">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                placeholder="Type your message..."
+              />
+              <button onClick={sendMessage}>Send</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {!chatOpen && (
+        <div className="own-video-box">
           <Video
             key={mySocketId}
             stream={streamRef.current}
@@ -146,148 +200,65 @@ export default function Videocall() {
             userVideoRef={userVideo}
             videoEnabled={videoEnabled}
           />
-          {peers.map(({ peerID, stream, username }) => (
-            <Video key={peerID} stream={stream} username={username} />
-          ))}
         </div>
+      )}
+
+      {/* Controls container */}
+      <div className="controls-row">
+        {[
+          {
+            onClick: toggleAudio,
+            srcOn: "https://img.icons8.com/ios-filled/50/microphone--v1.png",
+            srcOff:
+              "https://img.icons8.com/ios-filled/50/no-microphone--v1.png",
+            enabled: audioEnabled,
+            alt: "toggle-audio",
+          },
+          {
+            onClick: toggleVideo,
+            srcOn: "https://img.icons8.com/ios-filled/50/video-call.png",
+            srcOff: "https://img.icons8.com/ios-filled/50/no-video--v1.png",
+            enabled: videoEnabled,
+            alt: "toggle-video",
+          },
+          {
+            onClick: () => {},
+            srcOn: "https://img.icons8.com/ios-filled/50/present-to-all.png",
+            alt: "present",
+          },
+          {
+            onClick: () => {},
+            srcOn:
+              "https://img.icons8.com/ios-filled/50/conference-foreground-selected.png",
+            alt: "participants",
+          },
+          {
+            onClick: toggleChat,
+            srcOn: "https://img.icons8.com/ios-glyphs/50/chat.png",
+            alt: "chat",
+          },
+          {
+            onClick: () => {},
+            srcOn: "https://img.icons8.com/android/24/end-call.png",
+            alt: "end-call",
+          },
+        ].map(({ onClick, srcOn, srcOff, enabled = true, alt }, i) => (
+          <button
+            key={i}
+            onClick={onClick}
+            className="control-btn"
+            type="button"
+          >
+            <img
+              src={enabled ? srcOn : srcOff || srcOn}
+              alt={alt}
+              width={40}
+              height={40}
+            />
+          </button>
+        ))}
       </div>
-      <div className="row">
-        <div className="col-2 p-5 mt-2">
-          <button
-            onClick={toggleAudio}
-            style={{
-              padding: "10px 20px",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-          >
-            {audioEnabled ? (
-              <img
-                width="50"
-                height="50"
-                src="https://img.icons8.com/ios-filled/50/microphone--v1.png"
-                alt="microphone--v1"
-              />
-            ) : (
-              <img
-                width="50"
-                height="50"
-                src="https://img.icons8.com/ios-filled/50/no-microphone--v1.png"
-                alt="no-microphone--v1"
-              />
-            )}
-          </button>
-        </div>
-        <div className="col-2 p-5 mt-2">
-          <button
-            onClick={toggleVideo}
-            style={{
-              padding: "10px 20px",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-          >
-            {videoEnabled ? (
-              <img
-                width="50"
-                height="50"
-                src="https://img.icons8.com/ios-filled/50/video-call.png"
-                alt="video-call"
-              />
-            ) : (
-              <img
-                width="50"
-                height="50"
-                src="https://img.icons8.com/ios-filled/50/no-video--v1.png"
-                alt="no-video--v1"
-              />
-            )}
-          </button>
-        </div>
-        <div className="col-2 p-5 mt-2">
-          <button
-            style={{
-              padding: "10px 20px",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-          >
-            <img
-              width="50"
-              height="50"
-              src="https://img.icons8.com/ios-filled/50/present-to-all.png"
-              alt="present-to-all"
-            />
-          </button>
-        </div>
-        <div className="col-2 p-5 mt-2">
-          <button
-            style={{
-              padding: "10px 20px",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-          >
-            <img
-              width="50"
-              height="50"
-              src="https://img.icons8.com/ios-filled/50/conference-foreground-selected.png"
-              alt="conference-foreground-selected"
-            />
-          </button>
-        </div>
-        <div className="col-2 p-5 mt-2">
-          <button
-            style={{
-              padding: "10px 20px",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-          >
-            <img
-              width="50"
-              height="50"
-              src="https://img.icons8.com/ios-glyphs/50/chat.png"
-              alt="chat"
-            />
-          </button>
-        </div>
-        <div className="col-2 p-5 mt-2">
-          <button
-            style={{
-              padding: "10px 20px",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-          >
-            <img
-              width="50"
-              height="50"
-              src="https://img.icons8.com/android/24/end-call.png"
-              alt="end-call"
-            />
-          </button>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }
 
@@ -301,46 +272,25 @@ function Video({
   const ref = useRef();
 
   useEffect(() => {
-    if (isSelf && userVideoRef?.current) {
-      userVideoRef.current.srcObject = userVideoRef.current.srcObject;
-    } else if (ref.current && stream) {
-      ref.current.srcObject = stream;
+    const videoElement = isSelf ? userVideoRef?.current : ref.current;
+    if (videoElement && stream) {
+      videoElement.srcObject = stream;
     }
   }, [stream]);
 
   return (
-    <div style={{ textAlign: "center" }}>
-      <video
-        playsInline
-        autoPlay
-        muted={isSelf}
-        ref={isSelf ? userVideoRef : ref}
-        width={300}
-        style={{
-          borderRadius: 10,
-          border: "2px solid #ccc",
-          display: isSelf ? (videoEnabled ? "block" : "none") : "block",
-        }}
-      />
-      {isSelf && !videoEnabled && (
-        <div
-          style={{
-            width: 300,
-            height: 225,
-            borderRadius: 10,
-            border: "2px solid #ccc",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#f0f0f0",
-            fontSize: "18px",
-            fontWeight: "bold",
-          }}
-        >
-          Video Disabled
-        </div>
+    <div className="video-box">
+      {isSelf && !videoEnabled ? (
+        <div className="video-disabled">Video Disabled</div>
+      ) : (
+        <video
+          playsInline
+          autoPlay
+          muted={isSelf}
+          ref={isSelf ? userVideoRef : ref}
+        />
       )}
-      <h3>{username}</h3>
+      <h4 className="username">{username}</h4>
     </div>
   );
 }
