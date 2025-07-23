@@ -140,7 +140,7 @@ export default function Videocall() {
 
   return (
     <div className="video-wrapper">
-      <h2 className="room-title">Room: {meetingId}</h2>
+      <h2 className="room-title">Room:{meetingId}</h2>
 
       <div className={`main-content ${chatOpen ? "chat-open" : ""}`}>
         <div
