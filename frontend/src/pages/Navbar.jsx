@@ -101,9 +101,6 @@ function Navbar() {
             {/* Auth/Profile */}
             {!isLoggedIn ? (
               <div className="d-flex align-items-center gap-2">
-                <a href="/guest">
-                  <button className="btn themed-btn">Guest</button>
-                </a>
                 <a href="/register">
                   <button className="btn themed-btn">Register</button>
                 </a>

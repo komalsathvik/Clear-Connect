@@ -4,7 +4,6 @@ import "./App.css";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Guest from "./pages/Guest";
 import GoogleAuthSuccess from "./pages/GoogleAuthSuccess";
 import Profile from "./pages/Profile";
 import Preview from "./pages/Preview";
@@ -38,7 +37,6 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/guest" element={<Guest />} />
           <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/preview" element={<Preview />} />

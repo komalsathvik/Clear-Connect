@@ -161,7 +161,6 @@ export default function Videocall() {
             />
           )}
         </div>
-
         {chatOpen && (
           <div className="chat-box">
             <div className="chat-messages">
@@ -189,7 +188,6 @@ export default function Videocall() {
           </div>
         )}
       </div>
-
       {!chatOpen && (
         <div className="own-video-box">
           <Video
@@ -261,7 +259,6 @@ export default function Videocall() {
     </div>
   );
 }
-
 function Video({
   stream,
   username,
@@ -270,7 +267,6 @@ function Video({
   videoEnabled = true,
 }) {
   const ref = useRef();
-
   useEffect(() => {
     const videoElement = isSelf ? userVideoRef?.current : ref.current;
     if (videoElement && stream) {
