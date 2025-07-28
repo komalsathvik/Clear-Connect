@@ -8,11 +8,11 @@ const socket = io("http://localhost:9000");
 
 export default function Videocall() {
   const { state } = useLocation();
-  const { username, meetingId } = state;
+  const { username, meetingId, isVideo, isAudio } = state;
 
   const [peers, setPeers] = useState([]);
-  const [videoEnabled, setVideoEnabled] = useState(true);
-  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [videoEnabled, setVideoEnabled] = useState(isVideo);
+  const [audioEnabled, setAudioEnabled] = useState(isAudio);
   const [mySocketId, setMySocketId] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState([]);
