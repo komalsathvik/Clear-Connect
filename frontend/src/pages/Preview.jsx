@@ -48,7 +48,9 @@ function Preview() {
   const handleJoin = () => {
     const isVideo = videoEnabled;
     const isAudio = audioEnabled;
-    navigate("/meeting", { state: { meetingId, username, isVideo, isAudio } });
+    navigate("/meeting", {
+      state: { meetingId, username, isVideo, isAudio, isCreating: true },
+    });
   };
   return (
     <div style={{ textAlign: "center", marginTop: "30px" }}>

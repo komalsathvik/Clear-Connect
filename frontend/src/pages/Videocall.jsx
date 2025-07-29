@@ -29,7 +29,14 @@ export default function Videocall() {
       setMySocketId(socket.id);
       socket.emit("join-meeting", { meetingId });
     });
-
+    socket.on("meeting-exists", ({ success, message }) => {
+      if (!success) {
+        toast.error(message || "Meeting already running with same ID", {
+          position: "bottom-center",
+        });
+        setTimeout(() => navigate("/"), 3000);
+      }
+    });
     const handleServerMsg = ({ username: sender, message }) => {
       setMessages((prev) => [...prev, { sender, text: message }]);
     };
@@ -126,6 +133,7 @@ export default function Videocall() {
   };
 
   const toggleChat = () => {
+    setIsParticipantsEnabled(false);
     setChatOpen((prev) => !prev);
   };
 
@@ -148,6 +156,7 @@ export default function Videocall() {
       position: "bottom-right",
     });
   const handleParticipants = () => {
+    setChatOpen(false);
     setIsParticipantsEnabled((prev) => !prev);
   };
   const handleDisconnect = () => {
