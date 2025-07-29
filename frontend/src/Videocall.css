@@ -266,3 +266,33 @@
     width: 40%;
   }
 }
+.participants-box {
+  width: 250px;
+  background-color: #000;
+  color: white;
+  padding: 1rem;
+  overflow-y: auto;
+  border-left: 1px solid #333;
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 10;
+}
+
+.participants-box h3 {
+  margin-top: 0;
+  border-bottom: 1px solid #444;
+  padding-bottom: 0.5rem;
+}
+
+.participants-box ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.participants-box li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #444;
+}

@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import Peer from "simple-peer";
+import { ToastContainer, toast } from "react-toastify";
 import "../Videocall.css";
-
+import "react-toastify/dist/ReactToastify.css";
 const socket = io("http://localhost:9000");
-
 export default function Videocall() {
+  const navigate = useNavigate();
   const { state } = useLocation();
   const { username, meetingId, isVideo, isAudio } = state;
 
@@ -17,6 +18,7 @@ export default function Videocall() {
   const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const [isParticipantsEnabled, setIsParticipantsEnabled] = useState(false);
 
   const userVideo = useRef();
   const streamRef = useRef();
@@ -137,30 +139,63 @@ export default function Videocall() {
       setNewMessage("");
     }
   };
-
+  const handleError = (err) =>
+    toast.error(err, {
+      position: "bottom-left",
+    });
+  const handleSuccess = (msg) =>
+    toast.success(msg, {
+      position: "bottom-right",
+    });
+  const handleParticipants = () => {
+    setIsParticipantsEnabled((prev) => !prev);
+  };
+  const handleDisconnect = () => {
+    peersRef.current.forEach(({ peer }) => {
+      peer.destroy();
+    });
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+    }
+    if (socket.connected) {
+      socket.disconnect();
+    }
+    peersRef.current = [];
+    setPeers([]);
+    setChatOpen(false);
+    setIsParticipantsEnabled(false);
+    handleSuccess("Ending the meeting");
+    setTimeout(() => {
+      navigate("/");
+    }, 3000);
+  };
   return (
     <div className="video-wrapper">
-      <h2 className="room-title">Room:{meetingId}</h2>
+      <h2 className="room-title">Room: {meetingId}</h2>
 
-      <div className={`main-content ${chatOpen ? "chat-open" : ""}`}>
+      <div
+        className={`main-content ${
+          chatOpen || isParticipantsEnabled ? "chat-open" : ""
+        }`}
+      >
         <div
-          className={`remote-grid users-${peers.length + (chatOpen ? 1 : 0)}`}
+          className={`remote-grid users-${peers.length + 1} ${
+            chatOpen || isParticipantsEnabled ? "centered" : ""
+          }`}
         >
+          <Video
+            key={mySocketId}
+            stream={streamRef.current}
+            username={`${username} (You)`}
+            isSelf={true}
+            userVideoRef={userVideo}
+            videoEnabled={videoEnabled}
+          />
           {peers.map(({ peerID, stream, username }) => (
             <Video key={peerID} stream={stream} username={username} />
           ))}
-
-          {chatOpen && (
-            <Video
-              key={mySocketId}
-              stream={streamRef.current}
-              username={`${username} (You)`}
-              isSelf={true}
-              userVideoRef={userVideo}
-              videoEnabled={videoEnabled}
-            />
-          )}
         </div>
+
         {chatOpen && (
           <div className="chat-box">
             <div className="chat-messages">
@@ -187,21 +222,20 @@ export default function Videocall() {
             </div>
           </div>
         )}
-      </div>
-      {!chatOpen && (
-        <div className="own-video-box">
-          <Video
-            key={mySocketId}
-            stream={streamRef.current}
-            username={`${username} (You)`}
-            isSelf={true}
-            userVideoRef={userVideo}
-            videoEnabled={videoEnabled}
-          />
-        </div>
-      )}
 
-      {/* Controls container */}
+        {isParticipantsEnabled && (
+          <div className="participants-box">
+            <h3>Participants</h3>
+            <ul>
+              <li key={mySocketId}>{username} (You)</li>
+              {peers.map((peer) => (
+                <li key={peer.peerID}>{peer.username}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
       <div className="controls-row">
         {[
           {
@@ -225,7 +259,7 @@ export default function Videocall() {
             alt: "present",
           },
           {
-            onClick: () => {},
+            onClick: handleParticipants,
             srcOn:
               "https://img.icons8.com/ios-filled/50/conference-foreground-selected.png",
             alt: "participants",
@@ -236,7 +270,7 @@ export default function Videocall() {
             alt: "chat",
           },
           {
-            onClick: () => {},
+            onClick: handleDisconnect,
             srcOn: "https://img.icons8.com/android/24/end-call.png",
             alt: "end-call",
           },
@@ -256,9 +290,11 @@ export default function Videocall() {
           </button>
         ))}
       </div>
+      <ToastContainer />
     </div>
   );
 }
+
 function Video({
   stream,
   username,
