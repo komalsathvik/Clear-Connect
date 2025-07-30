@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import socket from "./socket";
 function Preview() {
   const { state } = useLocation();
   const { meetingId, username } = state;
@@ -49,7 +50,7 @@ function Preview() {
     const isVideo = videoEnabled;
     const isAudio = audioEnabled;
     navigate("/meeting", {
-      state: { meetingId, username, isVideo, isAudio, isCreating: true },
+      state: { meetingId, username, isVideo, isAudio },
     });
   };
   return (

@@ -1,20 +1,50 @@
 import React, { useState } from "react";
 import Navbar from "./Navbar";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 function LandingPage() {
   const [meetingId, setMeetingId] = useState("");
   const [username, setUsername] = useState("");
+  const [message, setMessage] = useState("");
   const Navigate = useNavigate();
 
-  function handleSubmit() {
+  async function handleCreate(isCreating) {
     const modal = document.getElementById("create");
     const modalInstance = bootstrap.Modal.getInstance(modal);
     if (modalInstance) {
       modalInstance.hide();
     }
-    Navigate("/preview", { state: { meetingId, username } });
+    try {
+      const res = await axios.post("http://localhost:9000/check-meeting", {
+        meetingId,
+      });
+      console.log(res);
+      if (res.data.exists) {
+        console.log(res);
+        setMessage("Meeting ID already in use. Please choose a different one.");
+        return;
+      }
+      Navigate("/preview", {
+        state: {
+          meetingId,
+          username,
+          isCreating,
+        },
+      });
+    } catch (err) {
+      console.log(err);
+    }
   }
-
+  function handleJoin(isCreating) {
+    console.log("joinnnnn");
+    Navigate("/preview", {
+      state: {
+        meetingId,
+        username,
+        isCreating,
+      },
+    });
+  }
   return (
     <>
       <Navbar />
@@ -146,11 +176,12 @@ function LandingPage() {
                   <button
                     type="button"
                     className="themed-btn"
-                    onClick={handleSubmit}
+                    onClick={() => handleCreate(true)}
                   >
                     Create
                   </button>
                 </div>
+                <p>{message}</p>
               </form>
             </div>
           </div>
@@ -206,7 +237,7 @@ function LandingPage() {
               <button
                 type="button"
                 className="themed-btn"
-                onClick={handleSubmit}
+                onClick={() => handleJoin(false)}
               >
                 Join
               </button>

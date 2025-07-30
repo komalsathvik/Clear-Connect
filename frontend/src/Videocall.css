@@ -226,7 +226,9 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 6px;
+  padding: 5px;
+  margin-left: 100px;
+  margin-right: 18 px;
   border-radius: 8px;
   transition: background-color 0.3s ease;
   filter: invert(1);

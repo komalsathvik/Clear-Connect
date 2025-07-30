@@ -1,35 +1,26 @@
-const activeMeetings = new Set();
-
+const { activeMeetings } = require("../utils/MeetingStore");
 function handleSocket(io, socket) {
   console.log("User is connected!!", socket.id);
 
-  // Chat logic
+  // ✅ Chat room join
   socket.on("join-meeting", ({ meetingId }) => {
+    activeMeetings.add(meetingId);
     socket.join(meetingId);
     console.log(`User ${socket.id} joined meeting ${meetingId} for chat.`);
   });
 
+  // ✅ Chat message
   socket.on("client-msg", ({ message, username, meetingId }) => {
     const data = { username, message };
     io.to(meetingId).emit("server-msg", data);
   });
 
-  // Video call logic
-  socket.on("create-or-join-room", ({ meetingId, username, isCreating }) => {
-    if (isCreating && activeMeetings.has(meetingId)) {
-      // Meeting already running — reject creation
-      socket.emit("meeting-exists", {
-        success: false,
-        message: "Meeting ID already in use. Try a different one.",
-      });
-      return;
-    }
-
-    // First time creation or join
+  // ✅ Video logic
+  socket.on("join-room", ({ meetingId, username }) => {
     activeMeetings.add(meetingId);
     socket.data.username = username;
     socket.join(meetingId);
-
+    console.log(activeMeetings);
     const usersInRoom = Array.from(
       io.sockets.adapter.rooms.get(meetingId) || []
     )
@@ -46,16 +37,18 @@ function handleSocket(io, socket) {
       username,
     });
 
+    // Signaling
     socket.on("signal", ({ to, from, signal }) => {
       io.to(to).emit("signal", { from, signal });
     });
 
+    // Disconnect logic
     socket.on("disconnect", () => {
       socket.to(meetingId).emit("user-left", { userId: socket.id });
 
       const room = io.sockets.adapter.rooms.get(meetingId);
       if (!room || room.size === 0) {
-        activeMeetings.delete(meetingId); // Clean up if room is empty
+        activeMeetings.delete(meetingId);
       }
     });
   });

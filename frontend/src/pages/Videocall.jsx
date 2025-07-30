@@ -3,9 +3,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import Peer from "simple-peer";
 import { ToastContainer, toast } from "react-toastify";
+import socket from "./socket";
 import "../Videocall.css";
 import "react-toastify/dist/ReactToastify.css";
-const socket = io("http://localhost:9000");
 export default function Videocall() {
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -180,7 +180,7 @@ export default function Videocall() {
   };
   return (
     <div className="video-wrapper">
-      <h2 className="room-title">Room: {meetingId}</h2>
+      <h2 className="room-title">Meeting Id: {meetingId}</h2>
 
       <div
         className={`main-content ${
