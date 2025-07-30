@@ -104,7 +104,10 @@ function LandingPage() {
               <div className="card-body">
                 <h5 className="card-title">Past Meetings</h5>
                 <p className="card-text">Check your past meetings history</p>
-                <a href="#" className="themed-btn border border-dark">
+                <a
+                  href="/past-meetings"
+                  className="themed-btn border border-dark"
+                >
                   Past Meetings
                 </a>
               </div>

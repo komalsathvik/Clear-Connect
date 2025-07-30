@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import socket from "./socket";
+import axios from "axios";
 function Preview() {
   const { state } = useLocation();
   const { meetingId, username } = state;
@@ -46,9 +47,14 @@ function Preview() {
       setAudioEnabled(audioTrack.enabled);
     }
   };
-  const handleJoin = () => {
+  const handleJoin = async () => {
     const isVideo = videoEnabled;
     const isAudio = audioEnabled;
+    const res = await axios.post("http://localhost:9000/past-meeting", {
+      meetingId,
+      username,
+    });
+    console.log(res);
     navigate("/meeting", {
       state: { meetingId, username, isVideo, isAudio },
     });

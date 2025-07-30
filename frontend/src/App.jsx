@@ -8,6 +8,7 @@ import GoogleAuthSuccess from "./pages/GoogleAuthSuccess";
 import Profile from "./pages/Profile";
 import Preview from "./pages/Preview";
 import Meeting from "./pages/Meeting";
+import PastMeetings from "./pages/PastMeetings";
 
 function ThemeWrapper({ children }) {
   const location = useLocation();
@@ -41,6 +42,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/preview" element={<Preview />} />
           <Route path="/meeting" element={<Meeting />} />
+          <Route path="/past-meetings" element={<PastMeetings />} />
         </Routes>
       </ThemeWrapper>
     </BrowserRouter>

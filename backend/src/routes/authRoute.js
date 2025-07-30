@@ -7,6 +7,7 @@ const User = require("../models/user.models");
 const bcrypt = require("bcrypt");
 const path = require("path");
 const { activeMeetings } = require("../utils/MeetingStore");
+const Meetings = require("../models/meetings.model");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -120,7 +121,6 @@ router.get(
   }
 );
 router.post("/check-meeting", (req, res) => {
-  console.log("hello");
   const { meetingId } = req.body;
 
   if (!meetingId) {
@@ -135,6 +135,32 @@ router.post("/check-meeting", (req, res) => {
     return res.status(200).json({ success: true, exists: true });
   } else {
     return res.status(200).json({ success: true, exists: false });
+  }
+});
+router.post("/past-meeting", async (req, res) => {
+  try {
+    const { meetingId, username } = req.body;
+    const meeting = new Meetings({
+      username,
+      meetingId,
+    });
+    await meeting.save();
+    res.status(201).json({ success: true, message: "Meeting saved" }); // ✅ Send a response
+  } catch (error) {
+    console.error("Error saving meeting:", error);
+    res.status(500).json({ success: false, message: "Failed to save meeting" });
+  }
+});
+let data = {};
+router.get("/history", async (req, res) => {
+  try {
+    const allMeetings = await Meetings.find();
+    data = allMeetings.map((m) => m.toObject());
+    console.log(allMeetings);
+    res.status(200).json({ message: "Meetings loaded", data: data });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Failed to fetch meetings" });
   }
 });
 router.post("/register", Register);
