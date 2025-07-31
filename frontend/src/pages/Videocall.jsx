@@ -18,6 +18,7 @@ export default function Videocall() {
   const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const [myStream, setMyStream] = useState(null);
   const [isParticipantsEnabled, setIsParticipantsEnabled] = useState(false);
 
   const userVideo = useRef();
@@ -178,6 +179,46 @@ export default function Videocall() {
       navigate("/");
     }, 3000);
   };
+  const handleScreenShare = async () => {
+    try {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+      });
+
+      const screenTrack = screenStream.getVideoTracks()[0];
+
+      // Replace video track in the peer connection
+      if (peerRef.current) {
+        const sender = peerRef.current._pc
+          .getSenders()
+          .find((s) => s.track.kind === "video");
+        if (sender) {
+          sender.replaceTrack(screenTrack);
+        }
+      }
+      const myVideo = document.getElementById("my-video");
+      if (myVideo) {
+        myVideo.srcObject = screenStream;
+      }
+      screenTrack.onended = () => {
+        if (myStream) {
+          const webcamTrack = myStream.getVideoTracks()[0];
+          const sender = peerRef.current._pc
+            .getSenders()
+            .find((s) => s.track.kind === "video");
+          if (sender) {
+            sender.replaceTrack(webcamTrack);
+          }
+          if (myVideo) {
+            myVideo.srcObject = myStream;
+          }
+        }
+      };
+    } catch (err) {
+      console.error("Error sharing screen:", err);
+    }
+  };
+
   return (
     <div className="video-wrapper">
       <h2 className="room-title">Meeting Id: {meetingId}</h2>
@@ -263,7 +304,7 @@ export default function Videocall() {
             alt: "toggle-video",
           },
           {
-            onClick: () => {},
+            onClick: handleScreenShare,
             srcOn: "https://img.icons8.com/ios-filled/50/present-to-all.png",
             alt: "present",
           },
