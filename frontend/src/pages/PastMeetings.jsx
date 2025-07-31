@@ -6,7 +6,11 @@ function PastMeetings() {
   useEffect(() => {
     const past = async () => {
       try {
-        const response = await axios.get("http://localhost:9000/history");
+        const admin = localStorage.getItem("username");
+        const response = await axios.get(
+          `http://localhost:9000/history?admin=${admin}`
+        );
+
         setMeetings(response.data.data);
       } catch (error) {
         console.error("Error fetching past meetings:", error);

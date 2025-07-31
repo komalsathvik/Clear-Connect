@@ -9,6 +9,10 @@ const meetingSchema = new Schema({
     type: String,
     required: true,
   },
+  admin: {
+    type: String,
+    required: true,
+  },
 });
 
 module.exports = model("Meetings", meetingSchema);

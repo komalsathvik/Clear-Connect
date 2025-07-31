@@ -4,9 +4,11 @@ require("dotenv").config();
 
 module.exports.userVerification = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  console.log(req.headers.authorization)
+  console.log(req.headers.authorization);
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ success: false, message: "No token provided" });
+    return res
+      .status(401)
+      .json({ success: false, message: "No token provided" });
   }
 
   const token = authHeader.split(" ")[1];

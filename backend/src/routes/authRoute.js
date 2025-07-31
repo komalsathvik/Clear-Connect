@@ -139,13 +139,14 @@ router.post("/check-meeting", (req, res) => {
 });
 router.post("/past-meeting", async (req, res) => {
   try {
-    const { meetingId, username } = req.body;
+    const { meetingId, username, admin } = req.body;
     const meeting = new Meetings({
       username,
       meetingId,
+      admin,
     });
     await meeting.save();
-    res.status(201).json({ success: true, message: "Meeting saved" }); // ✅ Send a response
+    res.status(201).json({ success: true, message: "Meeting saved" });
   } catch (error) {
     console.error("Error saving meeting:", error);
     res.status(500).json({ success: false, message: "Failed to save meeting" });
@@ -154,15 +155,20 @@ router.post("/past-meeting", async (req, res) => {
 let data = {};
 router.get("/history", async (req, res) => {
   try {
-    const allMeetings = await Meetings.find();
-    data = allMeetings.map((m) => m.toObject());
-    console.log(allMeetings);
-    res.status(200).json({ message: "Meetings loaded", data: data });
+    const { admin } = req.query;
+    if (!admin) {
+      return res.status(400).json({ error: "Admin field is required" });
+    }
+    const userMeetings = await Meetings.find({ admin: admin });
+    const data = userMeetings.map((m) => m.toObject());
+
+    res.status(200).json({ message: "Meetings loaded", data });
   } catch (err) {
-    console.log(err);
+    console.error("Error fetching meetings:", err);
     res.status(500).json({ error: "Failed to fetch meetings" });
   }
 });
+
 router.post("/register", Register);
 router.get("/test", (req, res) => {
   return res.json({ message: "done!" });

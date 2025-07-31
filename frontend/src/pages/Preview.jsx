@@ -48,11 +48,13 @@ function Preview() {
     }
   };
   const handleJoin = async () => {
+    const admin = localStorage.getItem("username");
     const isVideo = videoEnabled;
     const isAudio = audioEnabled;
     const res = await axios.post("http://localhost:9000/past-meeting", {
       meetingId,
       username,
+      admin,
     });
     console.log(res);
     navigate("/meeting", {
