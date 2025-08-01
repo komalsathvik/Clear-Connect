@@ -1,4 +1,4 @@
-export const URL = "http://localhost:9000";
+export const BackendURL = "http://localhost:9000";
 
 // import { URL } from "./config";  ######## import in the files where u r using adjust the path accordingly;
 

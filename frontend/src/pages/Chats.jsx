@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import io from "socket.io-client";
-const socket = io("http://localhost:9000");
+import { BackendURL } from "../config";
+const socket = io(`${BackendURL}`);
 function Chats({ username, meetingId }) {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);

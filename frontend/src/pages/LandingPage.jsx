@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import Navbar from "./Navbar";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { URL } from "../config";
+import { BackendURL } from "../config";
 function LandingPage() {
   const [meetingId, setMeetingId] = useState("");
   const [username, setUsername] = useState("");
   const [message, setMessage] = useState("");
   const Navigate = useNavigate();
-
+  const userFound = localStorage.getItem("token");
   async function handleCreate(isCreating) {
     const modal = document.getElementById("create");
     const modalInstance = bootstrap.Modal.getInstance(modal);
@@ -16,7 +16,11 @@ function LandingPage() {
       modalInstance.hide();
     }
     try {
-      const res = await axios.post(`${URL}/check-meeting`, {
+      if (!userFound) {
+        setMessage("Sign in to create a meeting");
+        return;
+      }
+      const res = await axios.post(`${BackendURL}/check-meeting`, {
         meetingId,
       });
       console.log(res);
@@ -37,6 +41,10 @@ function LandingPage() {
     }
   }
   function handleJoin(isCreating) {
+    if (!userFound) {
+      setMessage("Sign in or login to join a meeting");
+      return;
+    }
     console.log("joinnnnn");
     Navigate("/preview", {
       state: {
@@ -185,7 +193,7 @@ function LandingPage() {
                     Create
                   </button>
                 </div>
-                <p>{message}</p>
+                <p className="mt-2">{message}</p>
               </form>
             </div>
           </div>
@@ -245,6 +253,7 @@ function LandingPage() {
               >
                 Join
               </button>
+              <strong className="mt-3">{message}</strong>
             </div>
           </div>
         </div>

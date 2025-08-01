@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { URL } from "../config";
+import { BackendURL } from "../config";
 function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -15,7 +15,7 @@ function Navbar() {
       position: "bottom-right",
     });
 
-  const baseUrl = `${URL}`;
+  const baseUrl = `${BackendURL}`;
   const rawProfilePic = localStorage.getItem("profilePic");
 
   const profilePic = rawProfilePic

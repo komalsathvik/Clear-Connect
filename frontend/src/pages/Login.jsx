@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { URL } from "../config";
+import { BackendURL } from "../config";
 function Login() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -32,7 +32,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post(`${URL}/login`, inputValue, {
+      const { data } = await axios.post(`${BackendURL}/login`, inputValue, {
         withCredentials: true,
       });
 
@@ -112,7 +112,7 @@ function Login() {
           <button
             className="btn btn-danger w-100 mt-3"
             onClick={() => {
-              window.open("http://localhost:9000/auth/google", "_self");
+              window.open(`${BackendURL}/auth/google`, "_self");
             }}
           >
             <i className="fab fa-google me-2"></i> Login with Google
