@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { URL } from "../config";
 function Register() {
   const navigate = useNavigate();
 
@@ -33,11 +33,9 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post(
-        "http://localhost:9000/register",
-        inputValue,
-        { withCredentials: true }
-      );
+      const { data } = await axios.post(`${URL}/register`, inputValue, {
+        withCredentials: true,
+      });
 
       const { success, message } = data;
       if (success) {
@@ -138,7 +136,7 @@ function Register() {
         <button
           className="btn btn-danger w-100 mt-3"
           onClick={() => {
-            window.open("http://localhost:9000/auth/google", "_self");
+            window.open(`${URL}/auth/google`, "_self");
           }}
         >
           <i className="fab fa-google me-2"></i> Sign in with Google

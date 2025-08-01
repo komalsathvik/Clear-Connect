@@ -62,11 +62,10 @@ export default function Videocall() {
     // ✅ Always request both tracks
     navigator.mediaDevices
       .getUserMedia({
-        video: isVideo,
-        audio: isAudio,
+        video: true,
+        audio: true,
       })
       .then((stream) => {
-        // ✅ Enable or disable them after getting stream
         stream.getVideoTracks().forEach((track) => (track.enabled = isVideo));
         stream.getAudioTracks().forEach((track) => (track.enabled = isAudio));
 
@@ -258,19 +257,40 @@ export default function Videocall() {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
       });
-      const screenTrack = screenStream.getVideoTracks()[0];
-      const myVideo = document.getElementById("my-video");
 
+      const screenTrack = screenStream.getVideoTracks()[0];
+
+      // Replace track in all peer connections
+      peersRef.current.forEach(({ peer }) => {
+        const sender = peer._pc
+          .getSenders()
+          .find((s) => s.track?.kind === "video");
+        if (sender) {
+          sender.replaceTrack(screenTrack);
+        }
+      });
+
+      // Replace local video display
+      const myVideo = document.getElementById("my-video");
       if (myVideo) {
         myVideo.srcObject = screenStream;
       }
 
+      // When screen sharing ends, revert to original webcam
       screenTrack.onended = () => {
-        if (myStream) {
-          const webcamTrack = myStream.getVideoTracks()[0];
-          if (myVideo) {
-            myVideo.srcObject = myStream;
+        const webcamTrack = streamRef.current.getVideoTracks()[0];
+
+        peersRef.current.forEach(({ peer }) => {
+          const sender = peer._pc
+            .getSenders()
+            .find((s) => s.track?.kind === "video");
+          if (sender) {
+            sender.replaceTrack(webcamTrack);
           }
+        });
+
+        if (myVideo) {
+          myVideo.srcObject = streamRef.current;
         }
       };
     } catch (err) {
@@ -466,33 +486,43 @@ function Video({
       .slice(0, 2);
 
   return (
-    <div className="video-box">
-      {showVideo ? (
-        <video
-          playsInline
-          autoPlay
-          muted={isSelf}
-          ref={isSelf ? userVideoRef : ref}
-        />
-      ) : (
+    <div className="video-box" style={{ position: "relative" }}>
+      <video
+        playsInline
+        autoPlay
+        muted={isSelf}
+        ref={isSelf ? userVideoRef : ref}
+        style={{
+          width: "100%",
+          height: "100%",
+          borderRadius: "1rem",
+          objectFit: "cover",
+        }}
+      />
+
+      {!showVideo && (
         <div
-          className="video-disabled"
+          className="video-disabled-overlay"
           style={{
-            background: gradient.current,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            background: "#000",
+            width: "100%",
+            height: "100%",
+            borderRadius: "1rem",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             color: "#fff",
             fontSize: "5em",
             fontWeight: "bold",
-            width: "100%",
-            height: "100%",
-            borderRadius: "1rem",
           }}
         >
           {getInitials(username)}
         </div>
       )}
+
       <h4 className="username">{username}</h4>
     </div>
   );

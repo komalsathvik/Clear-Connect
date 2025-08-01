@@ -131,6 +131,7 @@ router.post("/check-meeting", (req, res) => {
 
   const exists = activeMeetings.has(meetingId);
   console.log(exists);
+  console.log(activeMeetings);
   if (exists) {
     return res.status(200).json({ success: true, exists: true });
   } else {

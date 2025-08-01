@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Navbar from "./Navbar";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { URL } from "../config";
 function LandingPage() {
   const [meetingId, setMeetingId] = useState("");
   const [username, setUsername] = useState("");
@@ -15,7 +16,7 @@ function LandingPage() {
       modalInstance.hide();
     }
     try {
-      const res = await axios.post("http://localhost:9000/check-meeting", {
+      const res = await axios.post(`${URL}/check-meeting`, {
         meetingId,
       });
       console.log(res);

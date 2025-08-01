@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { URL } from "../config";
 function PastMeetings() {
   const [meetings, setMeetings] = useState([]);
 
@@ -7,9 +8,7 @@ function PastMeetings() {
     const past = async () => {
       try {
         const admin = localStorage.getItem("username");
-        const response = await axios.get(
-          `http://localhost:9000/history?admin=${admin}`
-        );
+        const response = await axios.get(`${URL}/history?admin=${admin}`);
 
         setMeetings(response.data.data);
       } catch (error) {

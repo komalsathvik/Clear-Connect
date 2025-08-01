@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import socket from "./socket";
 import axios from "axios";
-
+import { URL } from "../config";
 function Preview() {
   const { state } = useLocation();
   const { meetingId, username } = state;
@@ -57,7 +57,7 @@ function Preview() {
     const isVideo = videoEnabled;
     const isAudio = audioEnabled;
     try {
-      const res = await axios.post("http://localhost:9000/past-meeting", {
+      const res = await axios.post(`${URL}/past-meeting`, {
         meetingId,
         username,
         admin,

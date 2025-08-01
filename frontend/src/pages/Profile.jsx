@@ -3,7 +3,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
-
+import { URL } from "../config";
 function Profile() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
@@ -36,16 +36,12 @@ function Profile() {
     formData.append("profilePic", profilePic);
 
     try {
-      const res = await axios.put(
-        "http://localhost:9000/update-profile",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const res = await axios.put(`${URL}/update-profile`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
       const data = res.data;
 
       if (data.username) localStorage.setItem("username", data.username);
@@ -68,7 +64,7 @@ function Profile() {
     if (!token) return handleError("Please login first");
 
     try {
-      const res = await axios.delete("http://localhost:9000/delete-profile", {
+      const res = await axios.delete(`${URL}/delete-profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
