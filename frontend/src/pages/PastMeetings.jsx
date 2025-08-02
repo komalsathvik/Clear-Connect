@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { BackendURL } from "../config";
+const BackendURL = import.meta.env.VITE_BACKEND_URL;
 function PastMeetings() {
   const [meetings, setMeetings] = useState([]);
 
