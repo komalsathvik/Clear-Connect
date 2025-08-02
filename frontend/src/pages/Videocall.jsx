@@ -141,7 +141,11 @@ export default function Videocall() {
 
         socket.on("signal", ({ from, signal }) => {
           const item = peersRef.current.find((p) => p.peerID === from);
-          if (item) item.peer.signal(signal);
+          if (item && item.peer) {
+            item.peer.signal(signal);
+          } else {
+            console.warn("Missing peer for:", from); // <-- log this to debug
+          }
         });
 
         socket.on("user-left", ({ userId }) => {
