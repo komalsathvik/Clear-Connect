@@ -116,10 +116,11 @@ export default function Videocall() {
           "user-joined",
           ({
             userId,
+            signal,
             username: newUsername,
             videoEnabled: newVideoEnabled,
           }) => {
-            const peer = addPeer(userId, stream);
+            const peer = addPeer(signal, userId, stream);
             const peerObj = {
               peerID: userId,
               peer,
@@ -171,15 +172,16 @@ export default function Videocall() {
     return peer;
   };
 
-  const addPeer = (incomingSignalUserId, stream) => {
+  const addPeer = (incomingSignal, userId, stream) => {
     const peer = new Peer({ initiator: false, trickle: false, stream });
     peer.on("signal", (signal) => {
       socket.emit("signal", {
-        to: incomingSignalUserId,
+        to: userId,
         from: socket.id,
         signal,
       });
     });
+    peer.signal(incomingSignal); // ⬅️ this is crucial
     return peer;
   };
 
