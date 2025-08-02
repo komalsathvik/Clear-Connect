@@ -22,11 +22,15 @@ const url = process.env.MONGO_URL;
 app.use(express.json());
 app.use(
   cors({
-    origin: ["https://clear-connect.vercel.app", "http://localhost:5173"],
+    origin: [
+      "https://clear-connect-komalsathviks-projects.vercel.app", // ✅ actual deployed frontend
+      "http://localhost:5173" // ✅ dev environment
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
+
 app.use(passport.initialize());
 
 // Routes
