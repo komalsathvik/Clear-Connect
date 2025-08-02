@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { BackendURL } from "../config";
+const BackendURL = import.meta.env.VITE_BACKEND_URL;
 function Login() {
   const navigate = useNavigate();
   const location = useLocation();
