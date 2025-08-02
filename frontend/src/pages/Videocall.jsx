@@ -139,7 +139,7 @@ export default function Videocall() {
             username: newUsername,
             videoEnabled: newVideoEnabled,
           }) => {
-            const peer = addPeer(signal, userId, stream);
+            const peer = addPeer(userId, stream);
             const peerObj = {
               peerID: userId,
               peer,
