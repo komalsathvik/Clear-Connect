@@ -9,6 +9,9 @@ const path = require("path");
 const { activeMeetings } = require("../utils/MeetingStore");
 const Meetings = require("../models/meetings.model");
 
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+
+// 🔧 Multer config
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, path.join(__dirname, "..", "uploads"));
@@ -18,8 +21,9 @@ const storage = multer.diskStorage({
     cb(null, `${Date.now()}-${file.fieldname}.${ext}`);
   },
 });
-
 const upload = multer({ storage });
+
+// 🔐 Google OAuth - login
 router.get(
   "/auth/google",
   passport.authenticate("google", {
@@ -27,17 +31,32 @@ router.get(
     prompt: "select_account",
   })
 );
+
+// 🔐 Google OAuth - callback
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: `${FRONTEND_URL}/login`,
+  }),
+  (req, res) => {
+    const { token, email, username, profilePic } = req.user;
+    const picture = profilePic || "./images/2903-default-blue.png";
+    res.redirect(
+      `${FRONTEND_URL}/google-auth-success?token=${token}&name=${username}&email=${email}&picture=${encodeURIComponent(
+        picture
+      )}`
+    );
+  }
+);
+
+// 👤 Profile update
 router.put(
   "/update-profile",
   userVerification,
   upload.single("profilePic"),
   async (req, res) => {
     try {
-      console.log("Incoming profile update request...");
-      console.log("User ID:", req.user.id);
-      console.log("Request Body:", req.body);
-      console.log("Uploaded File:", req.file);
-
       const { username, password } = req.body;
       const userId = req.user.id;
       const updateFields = {};
@@ -48,22 +67,15 @@ router.put(
         updateFields.password = hashedPassword;
       }
       if (req.file) {
-        const profilePicPath = `/uploads/${req.file.filename}`;
-        updateFields.profilePic = profilePicPath;
+        updateFields.profilePic = `/uploads/${req.file.filename}`;
       }
 
-      const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        {
-          $set: updateFields,
-        },
-        { new: true }
-      );
+      const updatedUser = await User.findByIdAndUpdate(userId, {
+        $set: updateFields,
+      }, { new: true });
 
       if (!updatedUser) {
-        return res
-          .status(404)
-          .json({ success: false, message: "User not found" });
+        return res.status(404).json({ success: false, message: "User not found" });
       }
 
       res.json({
@@ -74,77 +86,50 @@ router.put(
       });
     } catch (err) {
       console.error("❌ Update error:", err);
-      res
-        .status(500)
-        .json({ success: false, message: "Update failed", error: err.message });
+      res.status(500).json({
+        success: false,
+        message: "Update failed",
+        error: err.message,
+      });
     }
   }
 );
+
+// ❌ Delete profile
 router.delete("/delete-profile", userVerification, async (req, res) => {
-  console.log(" DELETE /delete-profile route loaded");
   try {
     const userId = req.user.id;
-    console.log("user", userId);
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ sucess: false, message: "user not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
-    const val = await User.findByIdAndDelete(userId);
-    console.log(val);
-    console.log("deleted");
+
+    await User.findByIdAndDelete(userId);
     res.clearCookie("token");
     res.json({ success: true, message: "Account deleted successfully" });
   } catch (err) {
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: "Failed to delete profile",
       error: err.message,
     });
   }
 });
-router.get(
-  "/auth/google/callback",
-  passport.authenticate("google", {
-    session: false,
-    failureRedirect: "http://localhost:5173/login",
-  }),
-  (req, res) => {
-    const token = req.user.token;
-    const email = req.user.email;
-    const username = req.user.username;
-    const picture = req.user.profilePic || "./images/2903-default-blue.png";
-    res.redirect(
-      `http://localhost:5173/google-auth-success?token=${token}&name=${username}&email=${email}&picture=${encodeURIComponent(
-        picture
-      )}`
-    );
-  }
-);
+
+// 🎥 Meeting routes
 router.post("/check-meeting", (req, res) => {
   const { meetingId } = req.body;
-
   if (!meetingId) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Meeting ID required" });
+    return res.status(400).json({ success: false, message: "Meeting ID required" });
   }
-
   const exists = activeMeetings.has(meetingId);
-  console.log(exists);
-  if (exists) {
-    return res.status(200).json({ success: true, exists: true });
-  } else {
-    return res.status(200).json({ success: true, exists: false });
-  }
+  return res.status(200).json({ success: true, exists });
 });
+
 router.post("/past-meeting", async (req, res) => {
   try {
     const { meetingId, username, admin } = req.body;
-    const meeting = new Meetings({
-      username,
-      meetingId,
-      admin,
-    });
+    const meeting = new Meetings({ username, meetingId, admin });
     await meeting.save();
     res.status(201).json({ success: true, message: "Meeting saved" });
   } catch (error) {
@@ -152,16 +137,15 @@ router.post("/past-meeting", async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to save meeting" });
   }
 });
-let data = {};
+
 router.get("/history", async (req, res) => {
   try {
     const { admin } = req.query;
     if (!admin) {
       return res.status(400).json({ error: "Admin field is required" });
     }
-    const userMeetings = await Meetings.find({ admin: admin });
+    const userMeetings = await Meetings.find({ admin });
     const data = userMeetings.map((m) => m.toObject());
-
     res.status(200).json({ message: "Meetings loaded", data });
   } catch (err) {
     console.error("Error fetching meetings:", err);
@@ -169,10 +153,14 @@ router.get("/history", async (req, res) => {
   }
 });
 
+// 🔐 Auth routes
 router.post("/register", Register);
+router.post("/login", Login);
+router.post("/", userVerification);
+
+// 🧪 Health check
 router.get("/test", (req, res) => {
   return res.json({ message: "done!" });
 });
-router.post("/login", Login);
-router.post("/", userVerification);
+
 module.exports = router;
