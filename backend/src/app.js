@@ -22,7 +22,7 @@ const url = process.env.MONGO_URL;
 app.use(express.json());
 app.use(
   cors({
-    origin: ["https://clear-connect-1.onrender.com", "http://localhost:5173", "http://localhost:9000"],
+    origin: ["https://clear-connect.vercel.app", "http://localhost:5173", "http://localhost:9000"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })

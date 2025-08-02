@@ -7,7 +7,7 @@ passport.use(
   new googleStrategy({
       clientID: process.env.GOOGLE_CLIENT_KEY,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "https://clear-connect-1.onrender.com/google-auth-success",
+      callbackURL: "https://clear-connect.vercel.app/google-auth-success",
     },
     async (accessToken, refreshToken, profile, done) => {
         try {
