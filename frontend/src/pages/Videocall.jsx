@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Peer from "simple-peer";
 import { ToastContainer, toast } from "react-toastify";
-import socket from "./socket";
+import socket from "./socket"; // make sure this exports your connected socket.io client
 import "../Videocall.css";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -25,12 +25,12 @@ const iceServers = [
   },
 ];
 
-export default function Videocall() {
+function Videocall() {
   const navigate = useNavigate();
   const { state } = useLocation();
-  const { username, meetingId, isVideo, isAudio } = state;
+  const { username, meetingId, isVideo, isAudio } = state || {};
 
-  const [peers, setPeers] = useState([]); // For UI rendering peer videos
+  const [peers, setPeers] = useState([]);
   const [videoEnabled, setVideoEnabled] = useState(isVideo);
   const [audioEnabled, setAudioEnabled] = useState(isAudio);
   const [mySocketId, setMySocketId] = useState("");
@@ -40,16 +40,15 @@ export default function Videocall() {
   const [isParticipantsEnabled, setIsParticipantsEnabled] = useState(false);
   const [videoRefreshKey, setVideoRefreshKey] = useState(0);
 
-  const userVideo = useRef(null); // your local video element ref
-  const streamRef = useRef(null); // your local media stream
-  const peersRef = useRef([]); // peers info: { peerID, peer, username, videoEnabled }
+  const userVideo = useRef(null);
+  const streamRef = useRef(null);
+  const peersRef = useRef([]);
 
-  // Helper: find peer in peersRef
+  // Helper to find peer by ID
   const findPeer = (id) => peersRef.current.find((p) => p.peerID === id);
 
   const shouldFloatMyVideo = peers.length >= 1 && !chatOpen && !isParticipantsEnabled;
 
-  // Handle messages from server
   const handleServerMsg = useCallback(
     ({ username: sender, message }) => {
       setMessages((prev) => [...prev, { sender, text: message }]);
@@ -57,7 +56,6 @@ export default function Videocall() {
     [setMessages]
   );
 
-  // Setup socket and WebRTC on mount
   useEffect(() => {
     if (!username || !meetingId) {
       toast.error("Username and Meeting ID required");
@@ -67,69 +65,62 @@ export default function Videocall() {
 
     const onConnect = () => {
       setMySocketId(socket.id);
-      socket.emit("join-meeting", { meetingId, username, videoEnabled: isVideo, audioEnabled: isAudio });
+      socket.emit("join-room", { meetingId, username, videoEnabled: isVideo, audioEnabled: isAudio });
     };
 
-    socket.on("connect", onConnect);
-
-    socket.on("meeting-exists", ({ success, message }) => {
+    socket.off("connect").on("connect", onConnect);
+    socket.off("meeting-exists").on("meeting-exists", ({ success, message }) => {
       if (!success) {
         toast.error(message || "Meeting conflict", { position: "bottom-center" });
         setTimeout(() => navigate("/"), 3000);
       }
     });
 
-    // Get media permission and stream
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(stream => {
-        // Enable/disable tracks based on initial states
+    navigator.mediaDevices.getUserMedia({ video: isVideo, audio: isAudio })
+      .then((stream) => {
+        streamRef.current = stream;
+
+        // Set the initial enabled state for tracks
         if (stream.getVideoTracks()[0]) stream.getVideoTracks()[0].enabled = isVideo;
         if (stream.getAudioTracks()[0]) stream.getAudioTracks()[0].enabled = isAudio;
 
-        streamRef.current = stream;
-
-        // Set local video
         if (userVideo.current) userVideo.current.srcObject = stream;
 
-        socket.emit("join-room", { meetingId, username, videoEnabled: isVideo, audioEnabled: isAudio });
-
-        // When joining, get all other users in the room, create initiator peers for them
+        // Receive initial users to connect with
         socket.once("all-users", (users) => {
           const peersArray = [];
-          users.forEach(({ userId, username: otherName }) => {
-            if (userId === socket.id) return; // skip self
+
+          users.forEach(({ userId, username: otherName, videoEnabled: otherVideoEnabled }) => {
+            if (userId === socket.id) return;
 
             const peer = createPeer(userId, socket.id, stream, otherName);
-            peersRef.current.push({ peerID: userId, peer, username: otherName, videoEnabled: true });
-            peersArray.push({ peerID: userId, stream: null, username: otherName, videoEnabled: true }); // stream will be set after peer.on("stream")
+            peersRef.current.push({ peerID: userId, peer, username: otherName, videoEnabled: otherVideoEnabled ?? true });
+            peersArray.push({ peerID: userId, stream: null, username: otherName, videoEnabled: otherVideoEnabled ?? true });
           });
-          setPeers(peersArray); // Initial peers with null streams
+
+          setPeers(peersArray);
         });
 
-        // When a new user joins, create a receiving peer for them
-        socket.on("user-joined", ({ userId, username: otherName }) => {
-          if (userId === socket.id) return; // ignore self
-          if (findPeer(userId)) return; // already have peer
+        socket.off("user-joined").on("user-joined", ({ userId, username: otherName, videoEnabled: otherVideoEnabled }) => {
+          if (userId === socket.id) return;
+          if (findPeer(userId)) return;
 
           const peer = addPeer(userId, stream, otherName);
-          peersRef.current.push({ peerID: userId, peer, username: otherName, videoEnabled: true });
-          setPeers((prev) => [...prev, { peerID: userId, stream: null, username: otherName, videoEnabled: true }]);
+          peersRef.current.push({ peerID: userId, peer, username: otherName, videoEnabled: otherVideoEnabled ?? true });
+
+          setPeers((prev) => [...prev, { peerID: userId, stream: null, username: otherName, videoEnabled: otherVideoEnabled ?? true }]);
         });
 
-        // Handle incoming signaling data
-        socket.on("signal", (data) => {
+        socket.off("signal").on("signal", (data) => {
           if (!data || !data.from || !data.signal) return;
 
           let item = findPeer(data.from);
 
           if (!item) {
-            // No peer found => create peer as receiver
-            const peer = addPeer(data.from, streamRef.current, data.username || "Unknown");
+            const peer = addPeer(data.from, stream, data.username || "Unknown");
             peersRef.current.push({ peerID: data.from, peer, username: data.username || "Unknown", videoEnabled: true });
+            setPeers(prev => [...prev, { peerID: data.from, stream: null, username: data.username || "Unknown", videoEnabled: true }]);
             item = peersRef.current[peersRef.current.length - 1];
-
-            // Append it in UI peers list as well
-            setPeers((prev) => [...prev, { peerID: data.from, stream: null, username: data.username || "Unknown", videoEnabled: true }]);
           }
 
           try {
@@ -139,40 +130,54 @@ export default function Videocall() {
           }
         });
 
-        // User left handling
-        socket.on("user-left", ({ userId }) => {
+        socket.off("user-left").on("user-left", ({ userId }) => {
           peersRef.current = peersRef.current.filter((p) => p.peerID !== userId);
           setPeers((prev) => prev.filter((p) => p.peerID !== userId));
         });
 
-        // Chat message handling
-        socket.on("client-msg", ({ username: sender, message }) => {
+        socket.off("video-toggled").on("video-toggled", ({ userId, isVideoEnabled }) => {
+          peersRef.current.forEach((p) => {
+            if (p.peerID === userId) {
+              p.videoEnabled = isVideoEnabled;
+            }
+          });
+
+          setPeers((prev) =>
+            prev.map((p) =>
+              p.peerID === userId ? { ...p, videoEnabled: isVideoEnabled } : p
+            )
+          );
+        });
+
+        socket.off("client-msg").on("client-msg", ({ username: sender, message }) => {
           handleServerMsg({ username: sender, message });
         });
       })
-      .catch(err => {
+      .catch((err) => {
         toast.error("Please grant camera/mic access", { position: "bottom-center" });
         navigate("/");
       });
 
-    // Cleanup on unmount
     return () => {
       socket.off("connect", onConnect);
-      socket.off("signal");
+      socket.off("meeting-exists");
+      socket.off("all-users");
       socket.off("user-joined");
+      socket.off("signal");
       socket.off("user-left");
       socket.off("client-msg");
-      socket.disconnect();
+      socket.off("video-toggled");
+
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
+
       peersRef.current.forEach(({ peer }) => peer.destroy());
       peersRef.current = [];
       setPeers([]);
     };
   }, [meetingId, username, isVideo, isAudio, handleServerMsg, navigate]);
 
-  // Peer creation functions
   const createPeer = (userToSignal, callerID, stream, peerUsername) => {
     const peer = new Peer({
       initiator: true,
@@ -182,19 +187,17 @@ export default function Videocall() {
     });
 
     peer.on("signal", (signal) => {
-      socket.emit("signal", { to: userToSignal, from: callerID, signal });
+      socket.emit("signal", { to: userToSignal, from: callerID, signal, username });
     });
 
     peer.on("stream", (remoteStream) => {
       setPeers((prevPeers) => {
-        // Update stream for this peerID
         const exists = prevPeers.find((p) => p.peerID === userToSignal);
         if (exists) {
-          return prevPeers.map(p =>
+          return prevPeers.map((p) =>
             p.peerID === userToSignal ? { ...p, stream: remoteStream } : p
           );
         } else {
-          // Add new peer entry if not present
           return [...prevPeers, { peerID: userToSignal, stream: remoteStream, username: peerUsername, videoEnabled: true }];
         }
       });
@@ -212,14 +215,14 @@ export default function Videocall() {
     });
 
     peer.on("signal", (signal) => {
-      socket.emit("signal", { to: incomingSignalUserId, from: socket.id, signal });
+      socket.emit("signal", { to: incomingSignalUserId, from: socket.id, signal, username });
     });
 
     peer.on("stream", (remoteStream) => {
       setPeers((prevPeers) => {
         const exists = prevPeers.find((p) => p.peerID === incomingSignalUserId);
         if (exists) {
-          return prevPeers.map(p =>
+          return prevPeers.map((p) =>
             p.peerID === incomingSignalUserId ? { ...p, stream: remoteStream } : p
           );
         } else {
@@ -231,7 +234,6 @@ export default function Videocall() {
     return peer;
   };
 
-  // Toggle local video enabled flag and update track state
   const toggleVideo = useCallback(() => {
     const videoTrack = streamRef.current?.getVideoTracks()[0];
     if (videoTrack) {
@@ -248,7 +250,6 @@ export default function Videocall() {
     }
   }, [meetingId]);
 
-  // Toggle local audio enabled flag and update track state
   const toggleAudio = useCallback(() => {
     const audioTrack = streamRef.current?.getAudioTracks()[0];
     if (audioTrack) {
@@ -257,13 +258,11 @@ export default function Videocall() {
     }
   }, []);
 
-  // Toggle chat sidebar open state
   const toggleChat = useCallback(() => {
     setIsParticipantsEnabled(false);
     setChatOpen((prev) => !prev);
   }, []);
 
-  // Send chat message to server
   const sendMessage = useCallback(() => {
     if (newMessage.trim()) {
       socket.emit("client-msg", {
@@ -275,26 +274,23 @@ export default function Videocall() {
     }
   }, [newMessage, meetingId, username]);
 
-  // Display success toast notifications
   const handleSuccess = useCallback(
     (msg) => toast.success(msg, { position: "bottom-right" }),
     []
   );
 
-  // Toggle participant list open state
   const handleParticipants = useCallback(() => {
     setChatOpen(false);
     setIsParticipantsEnabled((prev) => !prev);
   }, []);
 
-  // Clean up peers/connections and leave meeting
   const handleDisconnect = useCallback(() => {
     peersRef.current.forEach(({ peer }) => {
       try {
         peer.removeAllListeners();
         peer.destroy();
       } catch (err) {
-        // swallow peer destroy errors gracefully
+        // Ignore errors
       }
     });
 
@@ -315,7 +311,6 @@ export default function Videocall() {
     setTimeout(() => navigate("/"), 3000);
   }, [navigate, handleSuccess]);
 
-  // Handle screen sharing
   const handleScreenShare = useCallback(async () => {
     if (!streamRef.current) return toast.error("No local stream available.");
 
@@ -323,7 +318,6 @@ export default function Videocall() {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
       const screenTrack = screenStream.getVideoTracks()[0];
 
-      // Replace video track on all peers
       peersRef.current.forEach(({ peer }) => {
         const sender = peer._pc.getSenders().find((s) => s.track?.kind === "video");
         if (sender) {
@@ -331,10 +325,8 @@ export default function Videocall() {
         }
       });
 
-      // Replace local video
       if (userVideo.current) userVideo.current.srcObject = screenStream;
 
-      // When screen sharing ends, revert back to original webcam stream
       screenTrack.onended = () => {
         const webcamTrack = streamRef.current?.getVideoTracks()[0];
         if (!webcamTrack) {
@@ -357,13 +349,11 @@ export default function Videocall() {
     }
   }, []);
 
-  // Manage body classes for open chat/participants
   useEffect(() => {
     document.body.classList.toggle("chat-open", chatOpen);
     document.body.classList.toggle("participants-open", isParticipantsEnabled);
   }, [chatOpen, isParticipantsEnabled]);
 
-  // Video component controls UI for each peer and local video
   function Video({ stream, username, isSelf = false, userVideoRef, videoEnabled = true }) {
     const ref = useRef();
     const [showVideo, setShowVideo] = useState(videoEnabled);
@@ -374,7 +364,6 @@ export default function Videocall() {
     useEffect(() => {
       const videoElement = isSelf ? userVideoRef?.current : ref.current;
       if (videoElement && stream) {
-        // Only update srcObject if changed to avoid flicker
         if (videoElement.srcObject !== stream) {
           videoElement.srcObject = stream;
         }
@@ -385,7 +374,6 @@ export default function Videocall() {
       setShowVideo(videoEnabled);
     }, [videoEnabled]);
 
-    // Get initials for video-off placeholder
     const getInitials = (name) =>
       name
         .replace(/\(.*?\)/g, "")
@@ -447,9 +435,7 @@ export default function Videocall() {
     <div className="video-wrapper">
       <h2 className="room-title">Meeting Id: {meetingId}</h2>
 
-      <div
-        className={`main-content ${chatOpen || isParticipantsEnabled ? "chat-open" : ""}`}
-      >
+      <div className={`main-content ${chatOpen || isParticipantsEnabled ? "chat-open" : ""}`}>
         <div
           className={`remote-grid users-${peers.length + 1} ${
             chatOpen || isParticipantsEnabled ? "centered" : ""
@@ -495,7 +481,9 @@ export default function Videocall() {
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") sendMessage();
+                }}
                 placeholder="Type your message..."
                 aria-label="Chat message input"
               />
@@ -587,7 +575,10 @@ export default function Videocall() {
           </button>
         ))}
       </div>
+
       <ToastContainer />
     </div>
   );
 }
+
+export default Videocall;
