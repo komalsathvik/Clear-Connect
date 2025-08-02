@@ -78,7 +78,9 @@ export default function Videocall() {
     socket.on("video-toggled", ({ userId, isVideoEnabled }) => {
       setPeers((prevPeers) =>
         prevPeers.map((peer) =>
-          peer.peerID === userId ? { ...peer, videoEnabled: isVideoEnabled } : peer
+          peer.peerID === userId
+            ? { ...peer, videoEnabled: isVideoEnabled }
+            : peer
         )
       );
     });
@@ -112,37 +114,47 @@ export default function Videocall() {
           }
           const newPeers = [];
           peersRef.current = []; // reset peer ref array cleanly
-          users.forEach(({ userId, username: otherUsername, videoEnabled: otherVideoEnabled }) => {
-            const peer = createPeer(userId, socket.id, stream);
-            const peerObj = {
-              peerID: userId,
-              peer,
+          users.forEach(
+            ({
+              userId,
               username: otherUsername,
-              videoEnabled: otherVideoEnabled ?? true,
-            };
+              videoEnabled: otherVideoEnabled,
+            }) => {
+              const peer = createPeer(userId, socket.id, stream);
+              const peerObj = {
+                peerID: userId,
+                peer,
+                username: otherUsername,
+                videoEnabled: otherVideoEnabled ?? true,
+              };
 
-            peer.on("stream", (remoteStream) => {
-              setPeers((prev) => {
-                // Avoid duplicates by checking existing peers
-                if (prev.find((p) => p.peerID === userId)) return prev;
-                return [...prev, { ...peerObj, stream: remoteStream }];
+              peer.on("stream", (remoteStream) => {
+                setPeers((prev) => {
+                  // Avoid duplicates by checking existing peers
+                  if (prev.find((p) => p.peerID === userId)) return prev;
+                  return [...prev, { ...peerObj, stream: remoteStream }];
+                });
               });
-            });
 
-            peersRef.current.push(peerObj);
-            newPeers.push(peerObj);
-          });
+              peersRef.current.push(peerObj);
+              newPeers.push(peerObj);
+            }
+          );
 
           // Do a one time update for peers state for initial remote peers without streams yet
           setPeers(newPeers);
         });
 
         // 'user-joined' event - add a new peer from incoming signal
-        const onUserJoined = ({ userId, signal, username: newUsername, videoEnabled: newVideoEnabled }) => {
+        const onUserJoined = ({
+          userId,
+          username: newUsername,
+          videoEnabled: newVideoEnabled,
+        }) => {
           if (peersRef.current.find((p) => p.peerID === userId)) {
-            // Already have this peer, prevent duplicates
             return;
           }
+
           const peer = addPeer(userId, stream);
           const peerObj = {
             peerID: userId,
@@ -167,7 +179,7 @@ export default function Videocall() {
         const onSignal = ({ from, signal }) => {
           const item = peersRef.current.find((p) => p.peerID === from);
           if (item && item.peer) {
-            item.peer.signal(signal);
+            item.peer.signal(signal); // 🟢 THIS is what was missing sometimes!
           } else {
             console.warn("Missing peer for:", from);
           }
@@ -177,7 +189,9 @@ export default function Videocall() {
 
         // 'user-left' event - cleanup peers on disconnect
         const onUserLeft = ({ userId }) => {
-          peersRef.current = peersRef.current.filter((p) => p.peerID !== userId);
+          peersRef.current = peersRef.current.filter(
+            (p) => p.peerID !== userId
+          );
           setPeers((prev) => prev.filter((p) => p.peerID !== userId));
         };
 
@@ -226,6 +240,7 @@ export default function Videocall() {
       stream,
       config: { iceServers },
     });
+
     peer.on("signal", (signal) => {
       socket.emit("signal", {
         to: incomingSignalUserId,
@@ -233,6 +248,7 @@ export default function Videocall() {
         signal,
       });
     });
+
     return peer;
   }, []);
 
@@ -450,7 +466,11 @@ export default function Videocall() {
         </div>
       )}
 
-      <div className="controls-row" role="toolbar" aria-label="meeting controls">
+      <div
+        className="controls-row"
+        role="toolbar"
+        aria-label="meeting controls"
+      >
         {[
           {
             onClick: toggleAudio,
@@ -512,7 +532,13 @@ export default function Videocall() {
   );
 }
 
-function Video({ stream, username, isSelf = false, userVideoRef, videoEnabled = true }) {
+function Video({
+  stream,
+  username,
+  isSelf = false,
+  userVideoRef,
+  videoEnabled = true,
+}) {
   const ref = useRef();
   const [showVideo, setShowVideo] = useState(videoEnabled);
   const gradient = useRef(
