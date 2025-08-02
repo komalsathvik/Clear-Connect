@@ -1,32 +1,35 @@
 {
-  "name": "backend",
+  "name": "clear-connect-backend",
   "version": "1.0.0",
+  "description": "Backend for Clear Connect video calling app",
   "main": "src/app.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
-    "prod": "pm2 start src/app.js --name backend"
+    "prod": "pm2 start src/app.js --name clear-connect-backend"
   },
-  "type": "commonjs",
   "author": "sathvik",
   "license": "ISC",
-  "description": "",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "crypto": "^1.0.1",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "http": "^0.0.1-security",
     "http-status": "^2.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.0",
     "multer": "^2.0.1",
-    "nodemon": "^3.1.10",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "router": "^2.2.0",
     "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "pm2": "^5.3.0"
   }
 }
