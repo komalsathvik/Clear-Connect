@@ -17,7 +17,7 @@ const server = http.createServer(app);
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:9000"],
+    origin: ["https://clear-connect-1.onrender.com","http://localhost:5173", "http://localhost:9000"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
