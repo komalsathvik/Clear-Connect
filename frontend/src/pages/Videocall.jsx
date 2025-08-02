@@ -181,7 +181,7 @@ export default function Videocall() {
           if (item && item.peer) {
             item.peer.signal(signal); // 🟢 THIS is what was missing sometimes!
           } else {
-            console.warn("Missing peer for:", from);
+            console.log("Missing peer for:", from);
           }
         };
 
