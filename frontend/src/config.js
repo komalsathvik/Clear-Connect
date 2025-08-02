@@ -1,4 +1,5 @@
-export const BackendURL = "http://localhost:9000";
+export const BackendURL = "https://clear-connect-vnx5.onrender.com";
+
 
 // import { URL } from "./config";  ######## import in the files where u r using adjust the path accordingly;
 
