@@ -6,6 +6,25 @@ import socket from "./socket";
 import "../Videocall.css";
 import "react-toastify/dist/ReactToastify.css";
 
+const iceServers = [
+  {
+    urls: "stun:bn-turn2.xirsys.com",
+  },
+  {
+    urls: [
+      "turn:bn-turn2.xirsys.com:80?transport=udp",
+      "turn:bn-turn2.xirsys.com:3478?transport=udp",
+      "turn:bn-turn2.xirsys.com:80?transport=tcp",
+      "turn:bn-turn2.xirsys.com:3478?transport=tcp",
+      "turns:bn-turn2.xirsys.com:443?transport=tcp",
+      "turns:bn-turn2.xirsys.com:5349?transport=tcp",
+    ],
+    username:
+      "coD4CDDm9AGcJ_iSuDPjCHqRmP8eMXGFQ-9_AGRQ23oUu2WTy5z1fW-8dzRzBiWNAAAAAGiN4y1yb2hpdGg=",
+    credential: "606472fc-6f88-11f0-8048-0242ac140004",
+  },
+];
+
 export default function Videocall() {
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -169,23 +188,32 @@ export default function Videocall() {
   }, []);
 
   const createPeer = (userToSignal, callerID, stream) => {
-    const peer = new Peer({ initiator: true, trickle: false, stream });
+    const peer = new Peer({
+      initiator: true,
+      trickle: false,
+      stream,
+      config: { iceServers },
+    });
     peer.on("signal", (signal) => {
       socket.emit("signal", { to: userToSignal, from: callerID, signal });
     });
     return peer;
   };
 
-  const addPeer = (incomingSignal, userId, stream) => {
-    const peer = new Peer({ initiator: false, trickle: false, stream });
+  const addPeer = (incomingSignalUserId, stream) => {
+    const peer = new Peer({
+      initiator: false,
+      trickle: false,
+      stream,
+      config: { iceServers },
+    });
     peer.on("signal", (signal) => {
       socket.emit("signal", {
-        to: userId,
+        to: incomingSignalUserId,
         from: socket.id,
         signal,
       });
     });
-    peer.signal(incomingSignal); // ⬅️ this is crucial
     return peer;
   };
 
