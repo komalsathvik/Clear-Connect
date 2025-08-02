@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
-      "https://clear-connect-komalsathviks-projects.vercel.app", // ✅ actual deployed frontend
+      "https://clear-connect.vercel.app", // ✅ actual deployed frontend
       "http://localhost:5173" // ✅ dev environment
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
