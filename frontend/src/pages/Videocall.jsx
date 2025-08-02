@@ -58,167 +58,82 @@ export default function Videocall() {
   );
 
   useEffect(() => {
-    // Socket connection and events setup
-    socket.on("connect", () => {
-      setMySocketId(socket.id);
-      socket.emit("join-meeting", { meetingId });
-    });
+  const onConnect = () => {
+    setMySocketId(socket.id);
+    socket.emit("join-meeting", { meetingId, username, videoEnabled: isVideo });
+  };
 
-    socket.on("meeting-exists", ({ success, message }) => {
-      if (!success) {
-        toast.error(message || "Meeting already running with same ID", {
-          position: "bottom-center",
-        });
-        setTimeout(() => navigate("/"), 3000);
-      }
-    });
+  socket.on("connect", onConnect);
+  socket.on("meeting-exists", ({ success, message }) => {
+    if (!success) {
+      toast.error(message || "Meeting conflict", { position: "bottom-center" });
+      setTimeout(() => navigate("/"), 3000);
+    }
+  });
 
-    socket.on("server-msg", handleServerMsg);
+  navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    .then(stream => {
+      stream.getVideoTracks()[0].enabled = isVideo;
+      stream.getAudioTracks()[0].enabled = isAudio;
 
-    socket.on("video-toggled", ({ userId, isVideoEnabled }) => {
-      setPeers((prevPeers) =>
-        prevPeers.map((peer) =>
-          peer.peerID === userId
-            ? { ...peer, videoEnabled: isVideoEnabled }
-            : peer
-        )
-      );
-    });
+      userVideo.current.srcObject = stream;
+      streamRef.current = stream;
 
-    // Get media with requested constraints matching initial user settings
-    navigator.mediaDevices
-      .getUserMedia({
-        video: true,
-        audio: true,
-      })
-      .then((stream) => {
-        // Enable/disable tracks per initial props
-        stream.getVideoTracks().forEach((track) => (track.enabled = isVideo));
-        stream.getAudioTracks().forEach((track) => (track.enabled = isAudio));
+      socket.emit("join-room", { meetingId, username, videoEnabled: isVideo });
 
-        userVideo.current.srcObject = stream;
-        streamRef.current = stream;
-        setMyStream(stream);
-
-        // Emit join-room event with video status
-        socket.emit("join-room", {
-          meetingId,
-          username,
-          videoEnabled: isVideo,
-        });
-
-        // 'all-users' event - setup peers for all existing users at once
-        socket.once("all-users", (users) => {
-          if (!users || users.length === 0) {
-            return; // no peers yet
-          }
-          const newPeers = [];
-          peersRef.current = []; // reset peer ref array cleanly
-          users.forEach(
-            ({
-              userId,
-              username: otherUsername,
-              videoEnabled: otherVideoEnabled,
-            }) => {
-              const peer = createPeer(userId, socket.id, stream);
-              const peerObj = {
-                peerID: userId,
-                peer,
-                username: otherUsername,
-                videoEnabled: otherVideoEnabled ?? true,
-              };
-
-              peer.on("stream", (remoteStream) => {
-                setPeers((prev) => {
-                  // Avoid duplicates by checking existing peers
-                  if (prev.find((p) => p.peerID === userId)) return prev;
-                  return [...prev, { ...peerObj, stream: remoteStream }];
-                });
-              });
-
-              peersRef.current.push(peerObj);
-              newPeers.push(peerObj);
-            }
+      socket.once("all-users", users => {
+        users.forEach(({ userId, username: otherName }) => {
+          const peer = new Peer({ initiator: true, trickle: false, stream, config: { iceServers } });
+          peer.on("signal", signal =>
+            socket.emit("signal", { to: userId, from: socket.id, signal })
           );
-
-          // Do a one time update for peers state for initial remote peers without streams yet
-          setPeers(newPeers);
-        });
-
-        // 'user-joined' event - add a new peer from incoming signal
-        const onUserJoined = ({
-          userId,
-          username: newUsername,
-          videoEnabled: newVideoEnabled,
-        }) => {
-          if (peersRef.current.find((p) => p.peerID === userId)) {
-            return;
-          }
-
-          const peer = addPeer(userId, stream);
-          const peerObj = {
-            peerID: userId,
-            peer,
-            username: newUsername,
-            videoEnabled: newVideoEnabled ?? true,
-          };
-
-          peer.on("stream", (remoteStream) => {
-            setPeers((prev) => {
-              if (prev.find((p) => p.peerID === userId)) return prev;
-              return [...prev, { ...peerObj, stream: remoteStream }];
-            });
+          peer.on("stream", remoteStream => {
+            setPeers(prev => [...prev, { peerID: userId, stream: remoteStream, username: otherName }]);
           });
-
-          peersRef.current.push(peerObj);
-        };
-
-        socket.on("user-joined", onUserJoined);
-
-        // 'signal' event - direct signaling to peers
-        const onSignal = ({ from, signal }) => {
-          const item = peersRef.current.find((p) => p.peerID === from);
-          if (item && item.peer) {
-            item.peer.signal(signal); // 🟢 THIS is what was missing sometimes!
-          } else {
-            console.log("Missing peer for:", from);
-          }
-        };
-
-        socket.on("signal", onSignal);
-
-
-
-        // 'user-left' event - cleanup peers on disconnect
-        const onUserLeft = ({ userId }) => {
-          peersRef.current = peersRef.current.filter(
-            (p) => p.peerID !== userId
-          );
-          setPeers((prev) => prev.filter((p) => p.peerID !== userId));
-        };
-
-        socket.on("user-left", onUserLeft);
-
-        // Cleanup socket listeners on unmount to prevent leaks
-        return () => {
-          socket.off("user-joined", onUserJoined);
-          socket.off("signal", onSignal);
-          socket.off("user-left", onUserLeft);
-        };
-      })
-      .catch((err) => {
-        toast.error("Media access denied. Please allow camera and mic.", {
-          position: "bottom-center",
         });
-        navigate("/");
       });
 
-    // Cleanup main socket listeners and disconnect on unmount
-    return () => {
-      socket.off("server-msg", handleServerMsg);
-      socket.disconnect();
-    };
-  }, [meetingId, navigate, username, isVideo, isAudio, handleServerMsg]);
+      socket.on("user-joined", ({ userId, username: otherName }) => {
+        if (peersRef.current.find(p => p.peerID === userId)) return;
+        const peer = new Peer({ initiator: false, trickle: false, stream, config: { iceServers } });
+        peer.on("signal", signal =>
+          socket.emit("signal", { to: userId, from: socket.id, signal })
+        );
+        peer.on("stream", remoteStream => {
+          setPeers(prev => [...prev, { peerID: userId, stream: remoteStream, username: otherName }]);
+        });
+        peersRef.current.push({ peerID: userId, peer });
+      });
+
+      socket.on("signal", data => {
+        const item = peersRef.current.find(p => p.peerID === data.from);
+        if (item && item.peer && data.signal) {
+          try {
+            item.peer.signal(data.signal);
+          } catch (err) {
+            console.error("peer.signal error:", err);
+          }
+        } else {
+          console.warn("Invalid signal packet or missing peer:", data);
+        }
+      });
+
+      socket.on("user-left", ({ userId }) => {
+        peersRef.current = peersRef.current.filter(p => p.peerID !== userId);
+        setPeers(prev => prev.filter(p => p.peerID !== userId));
+      });
+    })
+    .catch(err => {
+      toast.error("Please grant camera/mic access", { position: "bottom-center" });
+      navigate("/");
+    });
+
+  return () => {
+    socket.off("connect", onConnect);
+    socket.disconnect();
+  };
+}, [meetingId, username]);
+
 
   // Create initiator peer
   const createPeer = useCallback((userToSignal, callerID, stream) => {
