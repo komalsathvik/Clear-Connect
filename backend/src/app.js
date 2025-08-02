@@ -3,51 +3,62 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const http = require("http");
 const { Server } = require("socket.io");
-const app = express();
-const PORT = 9000;
-const url = process.env.MONGO_URL;
 const cors = require("cors");
-const authRoute = require("./routes/authRoute");
 const path = require("path");
-const { handleSocket } = require("./controllers/socketController.js");
 const passport = require("passport");
+
+const authRoute = require("./routes/authRoute");
+const { handleSocket } = require("./controllers/socketController.js");
 require("../config/Passport");
 
+const app = express();
 const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } });
+
+const PORT = process.env.PORT || 9000;
+const url = process.env.MONGO_URL;
+
+// Middleware
 app.use(express.json());
 app.use(
   cors({
-    origin: ["https://clear-connect-1.onrender.com","http://localhost:5173", "http://localhost:9000"],
+    origin: ["https://clear-connect-1.onrender.com", "http://localhost:5173", "http://localhost:9000"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
 app.use(passport.initialize());
-app.use("/", authRoute);
+
+// Routes
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.get("/", (req, res) => {
-  res.send("server page");
-});
-const io = new Server(server, {
-  cors: { origin: "*" },
+app.use("/", authRoute);
+
+// Serve static frontend build files
+app.use(express.static(path.join(__dirname, "..", "frontend", "dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "frontend", "dist", "index.html"));
 });
 
+// Socket setup
 io.on("connection", (socket) => {
   handleSocket(io, socket);
 });
 
+// DB connection
 async function connectDb() {
   await mongoose
     .connect(url)
     .then(() => {
-      console.log("db connected");
+      console.log("✅ DB connected");
     })
     .catch((err) => {
-      console.log(err);
+      console.error("❌ DB connection error:", err);
     });
 }
 
+// Start server
 server.listen(PORT, () => {
-  console.log(`server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
   connectDb();
 });
