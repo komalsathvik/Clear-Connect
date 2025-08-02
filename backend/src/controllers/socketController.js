@@ -3,7 +3,7 @@ const { activeMeetings } = require("../utils/MeetingStore");
 function handleSocket(io, socket) {
   console.log("User is connected!!", socket.id);
 
-  // ✅ Chat room join
+  // ✅ Chat and join-meeting
   socket.on("join-meeting", ({ meetingId }) => {
     activeMeetings.add(meetingId);
     socket.join(meetingId);
@@ -16,14 +16,17 @@ function handleSocket(io, socket) {
     io.to(meetingId).emit("server-msg", data);
   });
 
-  // ✅ Video/Audio join logic
+  // ✅ WebRTC signaling — 🚨 move OUTSIDE join-room
+  socket.on("signal", ({ to, from, signal }) => {
+    io.to(to).emit("signal", { from, signal });
+  });
+
+  // ✅ Video/Audio join
   socket.on(
     "join-room",
     ({ meetingId, username, videoEnabled, audioEnabled }) => {
       activeMeetings.add(meetingId);
       socket.data.username = username;
-
-      // ✅ Store client media state on socket
       socket.data.videoEnabled = videoEnabled ?? true;
       socket.data.audioEnabled = audioEnabled ?? true;
 
@@ -32,7 +35,6 @@ function handleSocket(io, socket) {
         `User ${socket.id} joined room ${meetingId} (video: ${videoEnabled}, audio: ${audioEnabled})`
       );
 
-      // ✅ Collect info of other users already in the room
       const usersInRoom = Array.from(
         io.sockets.adapter.rooms.get(meetingId) || []
       )
@@ -47,41 +49,38 @@ function handleSocket(io, socket) {
           };
         });
 
-      // ✅ Send the list of existing users to newly joined user
       socket.emit("all-users", usersInRoom);
 
-      // ✅ Notify other users in the room about the new user
       socket.to(meetingId).emit("user-joined", {
         userId: socket.id,
         username,
         videoEnabled: socket.data.videoEnabled,
         audioEnabled: socket.data.audioEnabled,
       });
-
-      // ✅ Signaling for WebRTC (peer connection)
-      socket.on("signal", ({ to, from, signal }) => {
-        io.to(to).emit("signal", { from, signal });
-      });
-
-      // ✅ Disconnection logic
-      socket.on("disconnect", () => {
-        socket.to(meetingId).emit("user-left", { userId: socket.id });
-
-        const room = io.sockets.adapter.rooms.get(meetingId);
-        if (!room || room.size === 0) {
-          activeMeetings.delete(meetingId);
-        }
-      });
     }
   );
 
-  // ✅ Optional: Handle video toggle events
+  // ✅ Handle video toggle
   socket.on("video-toggled", ({ meetingId, userId, isVideoEnabled }) => {
     if (socket.id === userId) {
       socket.data.videoEnabled = isVideoEnabled;
     }
     io.to(meetingId).emit("video-toggled", { userId, isVideoEnabled });
   });
+
+  // ✅ Handle disconnect
+  socket.on("disconnect", () => {
+    const rooms = Array.from(socket.rooms).filter((r) => r !== socket.id);
+    rooms.forEach((meetingId) => {
+      socket.to(meetingId).emit("user-left", { userId: socket.id });
+
+      const room = io.sockets.adapter.rooms.get(meetingId);
+      if (!room || room.size === 0) {
+        activeMeetings.delete(meetingId);
+      }
+    });
+  });
 }
+
 
 module.exports = { handleSocket };
