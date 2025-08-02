@@ -1,11 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { nodePolyfills } from "vite-plugin-node-polyfills";
+import nodePolyfills from "vite-plugin-node-polyfills";
 
 export default defineConfig({
   plugins: [
     react(),
-    nodePolyfills(),
+    nodePolyfills({
+      protocolImports: true, // optional but helps in some cases
+    }),
   ],
   define: {
     global: {},
@@ -15,7 +17,7 @@ export default defineConfig({
     alias: {
       process: "process/browser",
       stream: "stream-browserify",
-      buffer: "buffer/",
+      buffer: "buffer",
     },
   },
 });
