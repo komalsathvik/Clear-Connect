@@ -187,6 +187,8 @@ export default function Videocall() {
 
         socket.on("signal", onSignal);
 
+        socket.on("signal", onSignal);
+
         // 'user-left' event - cleanup peers on disconnect
         const onUserLeft = ({ userId }) => {
           peersRef.current = peersRef.current.filter(
