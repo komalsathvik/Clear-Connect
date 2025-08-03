@@ -106,7 +106,7 @@ router.get(
   "/auth/google/callback",
   passport.authenticate("google", {
     session: false,
-    failureRedirect: "http://localhost:5173/login",
+    failureRedirect: "https://clear-connect.vercel.app/login",
   }),
   (req, res) => {
     const token = req.user.token;
