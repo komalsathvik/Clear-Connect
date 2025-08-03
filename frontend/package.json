@@ -1,13 +1,14 @@
 {
-  "name": "frontend",
+  "name": "clear-connect-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "Frontend for Clear Connect video conferencing app",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -17,8 +18,6 @@
     "bootstrap": "^5.3.7",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
-    "passport": "^0.7.0",
-    "passport-google-oauth20": "^2.0.0",
     "process": "^0.11.10",
     "react": "^19.1.0",
     "react-bootstrap": "^2.10.10",
@@ -27,8 +26,6 @@
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.6.2",
     "react-toastify": "^11.0.5",
-    "simple-peer": "^9.11.1",
-    "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "stream-browserify": "^3.0.0"
   },
