@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import io from "socket.io-client";
-import { BackendURL } from "../config";
+export const BackendURL = import.meta.env.VITE_API_URL;
+
 const socket = io(`${BackendURL}`);
 function Chats({ username, meetingId }) {
   const [message, setMessage] = useState("");

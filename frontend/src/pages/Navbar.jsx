@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { BackendURL } from "../config";
+export const BackendURL = import.meta.env.VITE_API_URL;
+
 function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 

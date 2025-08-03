@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import Navbar from "./Navbar";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { BackendURL } from "../config";
+export const BackendURL = import.meta.env.VITE_API_URL;
+
 function LandingPage() {
   const [meetingId, setMeetingId] = useState("");
   const [username, setUsername] = useState("");

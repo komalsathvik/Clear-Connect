@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import socket from "./socket";
 import axios from "axios";
-import { BackendURL } from "../config";
+export const BackendURL = import.meta.env.VITE_API_URL;
+
 function Preview() {
   const { state } = useLocation();
   const { meetingId, username } = state;
