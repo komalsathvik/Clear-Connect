@@ -1,10 +1,12 @@
+// Videocall.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Peer from "simple-peer";
 import { ToastContainer, toast } from "react-toastify";
 import socket from "./socket";
 import "../Videocall.css";
 import "react-toastify/dist/ReactToastify.css";
+
+const iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
 
 export default function Videocall() {
   const navigate = useNavigate();
@@ -18,13 +20,12 @@ export default function Videocall() {
   const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [myStream, setMyStream] = useState(null);
   const [isParticipantsEnabled, setIsParticipantsEnabled] = useState(false);
   const [videoRefreshKey, setVideoRefreshKey] = useState(0);
 
   const userVideo = useRef();
   const streamRef = useRef();
-  const peersRef = useRef([]);
+  const peerConnections = useRef({});
 
   const shouldFloatMyVideo =
     peers.length >= 1 && !chatOpen && !isParticipantsEnabled;
@@ -50,107 +51,92 @@ export default function Videocall() {
     socket.on("server-msg", handleServerMsg);
 
     socket.on("video-toggled", ({ userId, isVideoEnabled }) => {
-      setPeers((prevPeers) =>
-        prevPeers.map((peer) =>
-          peer.peerID === userId
-            ? { ...peer, videoEnabled: isVideoEnabled }
-            : peer
+      setPeers((prev) =>
+        prev.map((p) =>
+          p.peerID === userId ? { ...p, videoEnabled: isVideoEnabled } : p
         )
       );
     });
 
-    // ✅ Always request both tracks
     navigator.mediaDevices
-      .getUserMedia({
-        video: true,
-        audio: true,
-      })
+      .getUserMedia({ video: true, audio: true })
       .then((stream) => {
         stream.getVideoTracks().forEach((track) => (track.enabled = isVideo));
         stream.getAudioTracks().forEach((track) => (track.enabled = isAudio));
 
         userVideo.current.srcObject = stream;
         streamRef.current = stream;
-        setMyStream(stream);
 
-        // ✅ Send current video status
         socket.emit("join-room", {
           meetingId,
           username,
           videoEnabled: isVideo,
+          audioEnabled: isAudio,
         });
 
-        // ✅ When all users are returned
         socket.on("all-users", (users) => {
-          const newPeers = [];
-
-          users.forEach(
-            ({
-              userId,
-              username: otherUsername,
-              videoEnabled: otherVideoEnabled,
-            }) => {
-              const peer = createPeer(userId, socket.id, stream);
-              const peerObj = {
-                peerID: userId,
-                peer,
-                username: otherUsername,
-                videoEnabled: otherVideoEnabled ?? true,
-              };
-
-              peersRef.current.push(peerObj);
-
-              peer.on("stream", (remoteStream) => {
-                setPeers((prev) => [
-                  ...prev,
-                  { ...peerObj, stream: remoteStream },
-                ]);
-              });
-
-              newPeers.push(peerObj);
-            }
-          );
+          users.forEach((user) => {
+            const peer = createPeer(user.userId, stream);
+            peerConnections.current[user.userId] = peer;
+            setPeers((prev) => [
+              ...prev,
+              {
+                peerID: user.userId,
+                username: user.username,
+                stream: null,
+                videoEnabled: user.videoEnabled ?? true,
+              },
+            ]);
+          });
         });
 
-        socket.on(
-          "user-joined",
-          ({
-            userId,
-            username: newUsername,
-            videoEnabled: newVideoEnabled,
-          }) => {
-            const peer = addPeer(userId, stream);
-            const peerObj = {
+        socket.on("user-joined", ({ userId, username, videoEnabled }) => {
+          const peer = addPeer(userId, stream);
+          peerConnections.current[userId] = peer;
+          setPeers((prev) => [
+            ...prev,
+            {
               peerID: userId,
-              peer,
-              username: newUsername,
-              videoEnabled: newVideoEnabled ?? true,
-            };
+              username,
+              stream: null,
+              videoEnabled: videoEnabled ?? true,
+            },
+          ]);
+        });
 
-            peersRef.current.push(peerObj);
-
-            peer.on("stream", (remoteStream) => {
-              setPeers((prev) => [
-                ...prev,
-                { ...peerObj, stream: remoteStream },
-              ]);
-            });
+        socket.on("signal", async ({ from, signal }) => {
+          const peer = peerConnections.current[from];
+          if (peer) {
+            try {
+              if (signal.sdp) {
+                await peer.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+                if (signal.sdp.type === "offer") {
+                  const answer = await peer.createAnswer();
+                  await peer.setLocalDescription(answer);
+                  socket.emit("signal", {
+                    to: from,
+                    from: socket.id,
+                    signal: { sdp: peer.localDescription },
+                  });
+                }
+              } else if (signal.candidate) {
+                await peer.addIceCandidate(new RTCIceCandidate(signal.candidate));
+              }
+            } catch (err) {
+              console.error("Signal error:", err);
+            }
           }
-        );
-
-        socket.on("signal", ({ from, signal }) => {
-          const item = peersRef.current.find((p) => p.peerID === from);
-          if (item) item.peer.signal(signal);
         });
 
         socket.on("user-left", ({ userId }) => {
-          peersRef.current = peersRef.current.filter(
-            (p) => p.peerID !== userId
-          );
+          if (peerConnections.current[userId]) {
+            peerConnections.current[userId].close();
+            delete peerConnections.current[userId];
+          }
           setPeers((prev) => prev.filter((p) => p.peerID !== userId));
         });
       })
-      .catch((err) => {
+      .catch(() => {
         toast.error("Media access denied. Please allow camera and mic.", {
           position: "bottom-center",
         });
@@ -163,52 +149,85 @@ export default function Videocall() {
     };
   }, []);
 
-  const createPeer = (userToSignal, callerID, stream) => {
-    const peer = new Peer({ initiator: true, trickle: false, stream });
-    peer.on("signal", (signal) => {
-      socket.emit("signal", { to: userToSignal, from: callerID, signal });
-    });
-    return peer;
-  };
+  function createPeer(userId, stream) {
+    const peer = new RTCPeerConnection({ iceServers });
+    stream.getTracks().forEach((track) => peer.addTrack(track, stream));
 
-  const addPeer = (incomingSignalUserId, stream) => {
-    const peer = new Peer({ initiator: false, trickle: false, stream });
-    peer.on("signal", (signal) => {
-      socket.emit("signal", {
-        to: incomingSignalUserId,
-        from: socket.id,
-        signal,
+    peer.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.emit("signal", {
+          to: userId,
+          from: socket.id,
+          signal: { candidate: event.candidate },
+        });
+      }
+    };
+
+    peer.ontrack = (event) => {
+      setPeers((prev) =>
+        prev.map((p) =>
+          p.peerID === userId && !p.stream ? { ...p, stream: event.streams[0] } : p
+        )
+      );
+    };
+
+    peer.createOffer()
+      .then((offer) => peer.setLocalDescription(offer))
+      .then(() => {
+        socket.emit("signal", {
+          to: userId,
+          from: socket.id,
+          signal: { sdp: peer.localDescription },
+        });
       });
-    });
+
     return peer;
-  };
+  }
+
+  function addPeer(fromId, stream) {
+    const peer = new RTCPeerConnection({ iceServers });
+    stream.getTracks().forEach((track) => peer.addTrack(track, stream));
+
+    peer.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.emit("signal", {
+          to: fromId,
+          from: socket.id,
+          signal: { candidate: event.candidate },
+        });
+      }
+    };
+
+    peer.ontrack = (event) => {
+      setPeers((prev) =>
+        prev.map((p) =>
+          p.peerID === fromId && !p.stream ? { ...p, stream: event.streams[0] } : p
+        )
+      );
+    };
+
+    return peer;
+  }
 
   const toggleVideo = () => {
-    const videoTrack = streamRef.current?.getVideoTracks()[0];
-    if (videoTrack) {
-      videoTrack.enabled = !videoTrack.enabled;
-      setVideoEnabled(videoTrack.enabled);
-
-      if (userVideo.current) {
-        userVideo.current.srcObject = null;
-        userVideo.current.srcObject = streamRef.current;
-      }
-
+    const track = streamRef.current?.getVideoTracks()[0];
+    if (track) {
+      track.enabled = !track.enabled;
+      setVideoEnabled(track.enabled);
       socket.emit("video-toggled", {
         meetingId,
         userId: socket.id,
-        isVideoEnabled: videoTrack.enabled,
+        isVideoEnabled: track.enabled,
       });
-
-      setVideoRefreshKey((prev) => prev + 1);
+      setVideoRefreshKey((k) => k + 1);
     }
   };
 
   const toggleAudio = () => {
-    const audioTrack = streamRef.current?.getAudioTracks()[0];
-    if (audioTrack) {
-      audioTrack.enabled = !audioTrack.enabled;
-      setAudioEnabled(audioTrack.enabled);
+    const track = streamRef.current?.getAudioTracks()[0];
+    if (track) {
+      track.enabled = !track.enabled;
+      setAudioEnabled(track.enabled);
     }
   };
 
@@ -219,17 +238,10 @@ export default function Videocall() {
 
   const sendMessage = () => {
     if (newMessage.trim()) {
-      socket.emit("client-msg", {
-        message: newMessage,
-        username,
-        meetingId,
-      });
+      socket.emit("client-msg", { message: newMessage, username, meetingId });
       setNewMessage("");
     }
   };
-
-  const handleSuccess = (msg) =>
-    toast.success(msg, { position: "bottom-right" });
 
   const handleParticipants = () => {
     setChatOpen(false);
@@ -237,64 +249,35 @@ export default function Videocall() {
   };
 
   const handleDisconnect = () => {
-    peersRef.current.forEach(({ peer }) => peer.destroy());
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-    }
-    if (socket.connected) {
-      socket.disconnect();
-    }
-    peersRef.current = [];
+    Object.values(peerConnections.current).forEach((p) => p.close());
+    streamRef.current.getTracks().forEach((t) => t.stop());
+    socket.disconnect();
     setPeers([]);
     setChatOpen(false);
     setIsParticipantsEnabled(false);
-    handleSuccess("Ending the meeting");
+    toast.success("Ending the meeting", { position: "bottom-right" });
     setTimeout(() => navigate("/"), 3000);
   };
 
   const handleScreenShare = async () => {
     try {
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-      });
-
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
       const screenTrack = screenStream.getVideoTracks()[0];
-
-      // Replace track in all peer connections
-      peersRef.current.forEach(({ peer }) => {
-        const sender = peer._pc
-          .getSenders()
-          .find((s) => s.track?.kind === "video");
-        if (sender) {
-          sender.replaceTrack(screenTrack);
-        }
+      Object.values(peerConnections.current).forEach((pc) => {
+        const sender = pc.getSenders().find((s) => s.track.kind === "video");
+        if (sender) sender.replaceTrack(screenTrack);
       });
-
-      // Replace local video display
-      const myVideo = document.getElementById("my-video");
-      if (myVideo) {
-        myVideo.srcObject = screenStream;
-      }
-
-      // When screen sharing ends, revert to original webcam
+      userVideo.current.srcObject = screenStream;
       screenTrack.onended = () => {
         const webcamTrack = streamRef.current.getVideoTracks()[0];
-
-        peersRef.current.forEach(({ peer }) => {
-          const sender = peer._pc
-            .getSenders()
-            .find((s) => s.track?.kind === "video");
-          if (sender) {
-            sender.replaceTrack(webcamTrack);
-          }
+        Object.values(peerConnections.current).forEach((pc) => {
+          const sender = pc.getSenders().find((s) => s.track.kind === "video");
+          if (sender) sender.replaceTrack(webcamTrack);
         });
-
-        if (myVideo) {
-          myVideo.srcObject = streamRef.current;
-        }
+        userVideo.current.srcObject = streamRef.current;
       };
     } catch (err) {
-      console.error("Error sharing screen:", err);
+      console.error("Screen share error:", err);
     }
   };
 
@@ -308,9 +291,7 @@ export default function Videocall() {
       <h2 className="room-title">Meeting Id: {meetingId}</h2>
 
       <div
-        className={`main-content ${
-          chatOpen || isParticipantsEnabled ? "chat-open" : ""
-        }`}
+        className={`main-content ${chatOpen || isParticipantsEnabled ? "chat-open" : ""}`}
       >
         <div
           className={`remote-grid users-${peers.length + 1} ${
@@ -395,8 +376,7 @@ export default function Videocall() {
           {
             onClick: toggleAudio,
             srcOn: "https://img.icons8.com/ios-filled/50/microphone--v1.png",
-            srcOff:
-              "https://img.icons8.com/ios-filled/50/no-microphone--v1.png",
+            srcOff: "https://img.icons8.com/ios-filled/50/no-microphone--v1.png",
             enabled: audioEnabled,
             alt: "toggle-audio",
           },
@@ -414,8 +394,7 @@ export default function Videocall() {
           },
           {
             onClick: handleParticipants,
-            srcOn:
-              "https://img.icons8.com/ios-filled/50/conference-foreground-selected.png",
+            srcOn: "https://img.icons8.com/ios-filled/50/conference-foreground-selected.png",
             alt: "participants",
           },
           {
@@ -449,41 +428,19 @@ export default function Videocall() {
   );
 }
 
-function Video({
-  stream,
-  username,
-  isSelf = false,
-  userVideoRef,
-  videoEnabled = true,
-}) {
+function Video({ stream, username, isSelf = false, userVideoRef, videoEnabled = true }) {
   const ref = useRef();
   const [showVideo, setShowVideo] = useState(videoEnabled);
-  const gradient = useRef(
-    `radial-gradient(circle at center, hsl(${
-      Math.random() * 360
-    }, 70%, 60%), #333)`
-  );
 
   useEffect(() => {
     const videoElement = isSelf ? userVideoRef?.current : ref.current;
-    if (videoElement && stream) {
-      videoElement.srcObject = stream;
-    }
+    if (videoElement && stream) videoElement.srcObject = stream;
   }, [stream]);
 
-  useEffect(() => {
-    setShowVideo(videoEnabled);
-  }, [videoEnabled]);
+  useEffect(() => setShowVideo(videoEnabled), [videoEnabled]);
 
   const getInitials = (name) =>
-    name
-      .replace(/\(.*?\)/g, "")
-      .trim()
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
+    name.replace(/\(.*?\)/g, "").trim().split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
   return (
     <div className="video-box" style={{ position: "relative" }}>
@@ -492,14 +449,8 @@ function Video({
         autoPlay
         muted={isSelf}
         ref={isSelf ? userVideoRef : ref}
-        style={{
-          width: "100%",
-          height: "100%",
-          borderRadius: "1rem",
-          objectFit: "cover",
-        }}
+        style={{ width: "100%", height: "100%", borderRadius: "1rem", objectFit: "cover" }}
       />
-
       {!showVideo && (
         <div
           className="video-disabled-overlay"
@@ -522,7 +473,6 @@ function Video({
           {getInitials(username)}
         </div>
       )}
-
       <h4 className="username">{username}</h4>
     </div>
   );
