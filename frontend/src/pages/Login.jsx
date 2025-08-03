@@ -104,7 +104,7 @@ function Login() {
             </button>
 
             <span className="d-block mt-3">
-              Don’t have an account? <Link to="/signup">Signup</Link>
+              Don’t have an account? <Link to="/register">Signup</Link>
             </span>
           </form>
 
@@ -125,3 +125,4 @@ function Login() {
 }
 
 export default Login;
+
