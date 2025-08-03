@@ -1,5 +1,5 @@
 import { io } from "socket.io-client";
-import { BackendURL } from "../config";
+export const BackendURL = import.meta.env.VITE_API_URL;
 
 const socket = io(`${BackendURL}`);
 
