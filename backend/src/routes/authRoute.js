@@ -114,7 +114,7 @@ router.get(
     const username = req.user.username;
     const picture = req.user.profilePic || "./images/2903-default-blue.png";
     res.redirect(
-      `http://localhost:5173/google-auth-success?token=${token}&name=${username}&email=${email}&picture=${encodeURIComponent(
+      `https://clear-connect.vercel.app/google-auth-success?token=${token}&name=${username}&email=${email}&picture=${encodeURIComponent(
         picture
       )}`
     );
