@@ -28,8 +28,8 @@ Over the past few weeks, I’ve been working on **Clear Connect**, a full-stack 
 
 ## 📸 Demo
 
-- 📌 **Live Demo**: [Clear Connect](https://lnkd.in/e93V2_XZ)  
-- 📌 **GitHub Repo**: [Source Code](https://lnkd.in/ePAABZxQ)  
+- 📌 **Live Demo**: [Clear Connect](https://clear-connect.vercel.app)  
+- 📌 **GitHub Repo**: [Source Code](https://github.com/komalsathvik/Clear-Connect)  
 
 ---
 
